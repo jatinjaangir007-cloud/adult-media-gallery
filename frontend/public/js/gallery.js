@@ -1,43 +1,59 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const ageModal = document.getElementById('age-modal');
-  const gallery = document.getElementById('gallery');
-  const confirmBtn = document.getElementById('confirm-age');
-  const searchInput = document.getElementById('search');
-  const mediaGrid = document.getElementById('media-grid');
+const API_URL = window.location.origin;
+const gallery = document.getElementById("gallery");
+const searchInput = document.getElementById("search");
 
-  // Check age confirmation cookie
-  if (document.cookie.includes('ageConfirmed=true')) {
-    ageModal.classList.add('hidden');
-    gallery.classList.remove('hidden');
-    loadMedia();
+let mediaData = [];
+
+async function fetchMedia() {
+  try {
+    const res = await fetch(`${API_URL}/api/public/media`);
+    mediaData = await res.json();
+    renderMedia(mediaData);
+  } catch (err) {
+    console.error("Failed to load media", err);
+  }
+}
+
+function renderMedia(data) {
+  gallery.innerHTML = "";
+
+  if (data.length === 0) {
+    gallery.innerHTML = "<p style='opacity:0.6'>No media found.</p>";
+    return;
   }
 
-  confirmBtn.addEventListener('click', () => {
-    document.cookie = 'ageConfirmed=true; max-age=31536000'; // 1 year
-    ageModal.classList.add('hidden');
-    gallery.classList.remove('hidden');
-    loadMedia();
-  });
+  data.forEach(media => {
+    const card = document.createElement("div");
+    card.className = "media-card";
 
-  searchInput.addEventListener('input', () => {
-    const query = searchInput.value;
-    loadMedia(query);
-  });
+    let mediaElement;
 
-  async function loadMedia(query = '') {
-    const url = query ? `/api/public/media/search?q=${encodeURIComponent(query)}` : '/api/public/media';
-    const res = await fetch(url);
-    const media = await res.json();
-    mediaGrid.innerHTML = '';
-    media.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'media-item';
-      if (item.type === 'video') {
-        div.innerHTML = `<video controls><source src="${item.cloudUrl}" type="video/mp4"></video><p>${item.title}</p><p>Tags: ${item.tags.join(', ')}</p>`;
-      } else {
-        div.innerHTML = `<img src="${item.cloudUrl}" alt="${item.title}"><p>${item.title}</p><p>Tags: ${item.tags.join(', ')}</p>`;
-      }
-      mediaGrid.appendChild(div);
-    });
-  }
+    if (media.type === "video") {
+      mediaElement = document.createElement("video");
+      mediaElement.src = media.url;
+      mediaElement.controls = true;
+    } else {
+      mediaElement = document.createElement("img");
+      mediaElement.src = media.url;
+    }
+
+    const info = document.createElement("div");
+    info.className = "media-info";
+    info.textContent = media.title || "Untitled";
+
+    card.appendChild(mediaElement);
+    card.appendChild(info);
+    gallery.appendChild(card);
+  });
+}
+
+searchInput.addEventListener("input", e => {
+  const query = e.target.value.toLowerCase();
+  const filtered = mediaData.filter(item =>
+    item.title?.toLowerCase().includes(query) ||
+    item.tags?.join(" ").toLowerCase().includes(query)
+  );
+  renderMedia(filtered);
 });
+
+fetchMedia();
