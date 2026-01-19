@@ -1,0 +1,10 @@
+body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; }
+.modal { display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+.modal-content { background: #333; padding: 20px; border-radius: 8px; text-align: center; }
+.hidden { display: none; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+.media-item { background: #222; padding: 10px; border-radius: 8px; }
+.media-item img, .media-item video { width: 100%; height: auto; }
+.edit-form { margin-top: 10px; }
+.edit-form input { width: 100%; margin-bottom: 5px; }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adult Media Gallery</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="age-modal" class="modal">
+    <div class="modal-content">
+      <h2>Age Verification</h2>
+      <p>You must be 18+ to view this content.</p>
+      <button id="confirm-age">I am 18+</button>
+    </div>
+  </div>
+  <div id="gallery" class="hidden">
+    <h1>Adult Media Gallery</h1>
+    <input type="text" id="search" placeholder="Search by title or tags...">
+    <div id="media-grid" class="grid"></div>
+  </div>
+  <script src="js/gallery.js"></script>
+</body>
+</html>
