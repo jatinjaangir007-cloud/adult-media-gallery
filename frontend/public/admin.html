@@ -2,40 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VelvetHub Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #000, #111);
+      font-family: Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: rgba(0,0,0,0.85);
+      padding: 30px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 0 40px rgba(255,0,0,0.3);
+    }
+
+    h2 {
+      text-align: center;
+      color: #ff4444;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    input {
+      background: #eee;
+      color: #000;
+    }
+
+    button {
+      background: #ff4444;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #ff2222;
+    }
+
+    #upload-form {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
-<body class="admin-body">
+<body>
 
-  <div class="admin-container">
+  <div class="card">
 
     <!-- LOGIN -->
     <form id="login-form">
       <h2>Admin Login</h2>
-
       <input id="username" placeholder="Username" required />
       <input id="password" type="password" placeholder="Password" required />
       <button type="submit">Login</button>
     </form>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard-section" class="admin-box hidden">
-      <h2>Admin Dashboard</h2>
-
-      <input type="text" id="title" placeholder="Title" />
-      <input type="text" id="tags" placeholder="Tags (comma separated)" />
-      <input type="file" id="file" />
-
-      <button onclick="upload()">Upload</button>
-
-      <p id="upload-status"></p>
-    </div>
+    <!-- UPLOAD -->
+    <form id="upload-form" enctype="multipart/form-data">
+      <h2>Upload Media</h2>
+      <input id="title" placeholder="Title" required />
+      <input id="tags" placeholder="Tags (comma separated)" />
+      <input id="file" type="file" accept="image/*,video/*" required />
+      <button type="submit">Upload</button>
+    </form>
 
   </div>
 
-  <script src="js/admin.js"></script>
+  <script src="/js/admin.js"></script>
 </body>
 </html>
