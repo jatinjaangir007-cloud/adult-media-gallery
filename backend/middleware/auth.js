@@ -1,16 +1,18 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-const authenticateAdmin = (req, res, next) => {
-  const token = req.cookies.adminToken;
-  if (!token) return res.status(401).json({ message: 'Unauthorized' });
+module.exports = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "No token" });
+  }
+
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.admin = decoded;
+    jwt.verify(token, process.env.JWT_SECRET);
     next();
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid token' });
+  } catch {
+    res.status(403).json({ message: "Invalid token" });
   }
 };
-
-module.exports = { authenticateAdmin };
