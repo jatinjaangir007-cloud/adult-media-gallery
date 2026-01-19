@@ -2,19 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Free HD Adult Videos & Photos | VelvetHub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Free HD Adult Videos & Photos | VelvetHub</title>
+
+  <meta name="description" content="Watch free HD adult videos and browse premium adult photos. 18+ only." />
+  <meta name="robots" content="index, follow" />
+
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
 
+  <!-- 🔞 AGE VERIFICATION MODAL -->
+  <div id="age-gate" class="age-gate">
+    <div class="age-box">
+      <h2>🔞 Adults Only (18+)</h2>
+      <p>
+        This website contains adult content intended for viewers
+        aged <strong>18 years or older</strong>.
+      </p>
+      <p>Please confirm your age to continue.</p>
+
+      <div class="age-buttons">
+        <button id="age-yes">I am 18 or older</button>
+        <button id="age-no">Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITE CONTENT -->
   <header class="header">
     <h1>Velvet<span>Hub</span></h1>
-    <p class="tagline">Premium Adult Media Collection</p>
+    <p class="tagline">Free HD Adult Videos & Photos</p>
+
     <input
       type="text"
       id="search"
-      placeholder="Search by title or tags..."
+      placeholder="Search videos or photos..."
     />
   </header>
 
@@ -22,6 +46,7 @@
     <div id="gallery"></div>
   </main>
 
+  <script src="js/age-gate.js"></script>
   <script src="js/gallery.js"></script>
 </body>
 </html>
