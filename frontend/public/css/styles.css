@@ -155,3 +155,61 @@ body {
   background: #333;
   color: #ccc;
 }
+/* =========================
+   ADMIN PANEL STYLES
+========================= */
+
+.admin-body {
+  background: radial-gradient(circle at top, #111, #000);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.admin-box {
+  background: #0f0f0f;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(255, 77, 77, 0.25);
+  text-align: center;
+}
+
+.admin-box h2 {
+  margin-bottom: 20px;
+  color: #ff4d4d;
+}
+
+.admin-box input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  background: #1c1c1c;
+  color: #fff;
+}
+
+.admin-box button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  background: #ff4d4d;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.admin-box button:hover {
+  opacity: 0.9;
+}
+
+.hidden {
+  display: none;
+}

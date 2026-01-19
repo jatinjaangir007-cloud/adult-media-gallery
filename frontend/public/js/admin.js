@@ -1,95 +1,109 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const loginDiv = document.getElementById('login');
-  const dashboard = document.getElementById('dashboard');
-  const loginBtn = document.getElementById('login-btn');
-  const uploadForm = document.getElementById('upload-form');
-  const adminGrid = document.getElementById('admin-media-grid');
+// ===============================
+// ADMIN AUTH + DASHBOARD SCRIPT
+// ===============================
 
-  // Check if logged in
-  if (document.cookie.includes('adminToken')) {
-    loginDiv.classList.add('hidden');
-    dashboard.classList.remove('hidden');
-    loadAdminMedia();
-  } else {
-    loginDiv.classList.remove('hidden');
-  }
+// Elements
+const loginSection = document.getElementById("login-section");
+const dashboardSection = document.getElementById("dashboard-section");
+const statusText = document.getElementById("upload-status");
 
-  loginBtn.addEventListener('click', async () => {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    if (res.ok) {
-      loginDiv.classList.add('hidden');
-      dashboard.classList.remove('hidden');
-      loadAdminMedia();
-    } else {
-      alert('Invalid credentials');
-    }
-  });
-
-  uploadForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(uploadForm);
-    const res = await fetch('/api/admin/media', {
-      method: 'POST',
-      body: formData
-    });
-    if (res.ok) {
-      loadAdminMedia();
-      uploadForm.reset();
-    }
-  });
-
-  async function loadAdminMedia() {
-    const res = await fetch('/api/public/media');
-    const media = await res.json();
-    adminGrid.innerHTML = '';
-    media.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'media-item';
-      div.innerHTML = `
-        <img src="${item.cloudUrl}" alt="${item.title}" style="max-width:100px;">
-        <p>${item.title}</p>
-        <form class="edit-form" data-id="${item._id}">
-          <input type="text" name="title" value="${item.title}" required>
-          <input type="text" name="tags" value="${item.tags.join(', ')}">
-          <button type="submit">Edit</button>
-          <button type="button" class="delete-btn">Delete</button>
-        </form>
-      `;
-      adminGrid.appendChild(div);
-    });
-
-    // Attach edit/delete handlers
-    document.querySelectorAll('.edit-form').forEach(form => {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = form.dataset.id;
-        const formData = new FormData(form);
-        const res = await fetch(`/api/admin/media/${id}`, {
-          method: 'PUT',
-          body: formData
-        });
-        if (res.ok) {
-          loadAdminMedia();
-        }
-      });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.closest('.edit-form').dataset.id;
-        const res = await fetch(`/api/admin/media/${id}`, {
-          method: 'DELETE'
-        });
-        if (res.ok) {
-          loadAdminMedia();
-        }
-      });
-    });
+// On page load: check token
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("adminToken");
+  if (token) {
+    loginSection.classList.add("hidden");
+    dashboardSection.classList.remove("hidden");
   }
 });
+
+// ===============================
+// LOGIN FUNCTION
+// ===============================
+function login() {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!username || !password) {
+    alert("Please enter username and password");
+    return;
+  }
+
+  fetch("/admin/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ username, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.token) {
+        localStorage.setItem("adminToken", data.token);
+        loginSection.classList.add("hidden");
+        dashboardSection.classList.remove("hidden");
+      } else {
+        alert("Invalid credentials");
+      }
+    })
+    .catch(() => {
+      alert("Login failed. Server error.");
+    });
+}
+
+// ===============================
+// UPLOAD FUNCTION
+// ===============================
+function upload() {
+  const token = localStorage.getItem("adminToken");
+  if (!token) {
+    alert("Not authenticated");
+    return;
+  }
+
+  const title = document.getElementById("title").value.trim();
+  const tags = document.getElementById("tags").value.trim();
+  const fileInput = document.getElementById("file");
+
+  if (!title || !fileInput.files.length) {
+    alert("Title and file are required");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("tags", tags);
+  formData.append("file", fileInput.files[0]);
+
+  statusText.innerText = "Uploading...";
+
+  fetch("/admin/upload", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        statusText.innerText = "Upload successful ✅";
+        document.getElementById("title").value = "";
+        document.getElementById("tags").value = "";
+        fileInput.value = "";
+      } else {
+        statusText.innerText = "Upload failed ❌";
+      }
+    })
+    .catch(() => {
+      statusText.innerText = "Server error during upload ❌";
+    });
+}
+
+// ===============================
+// LOGOUT (OPTIONAL)
+// ===============================
+function logout() {
+  localStorage.removeItem("adminToken");
+  dashboardSection.classList.add("hidden");
+  loginSection.classList.remove("hidden");
+}

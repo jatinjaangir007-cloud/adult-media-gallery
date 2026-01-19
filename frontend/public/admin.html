@@ -1,28 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VelvetHub Admin</title>
+
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
-  <div id="login" class="hidden">
-    <h1>Admin Login</h1>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button id="login-btn">Login</button>
+
+<body class="admin-body">
+
+  <div class="admin-container">
+
+    <!-- LOGIN -->
+    <div id="login-section" class="admin-box">
+      <h2>Admin Login</h2>
+
+      <input type="text" id="username" placeholder="Username" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard-section" class="admin-box hidden">
+      <h2>Admin Dashboard</h2>
+
+      <input type="text" id="title" placeholder="Title" />
+      <input type="text" id="tags" placeholder="Tags (comma separated)" />
+      <input type="file" id="file" />
+
+      <button onclick="upload()">Upload</button>
+
+      <p id="upload-status"></p>
+    </div>
+
   </div>
-  <div id="dashboard" class="hidden">
-    <h1>Admin Dashboard</h1>
-    <form id="upload-form">
-      <input type="text" name="title" placeholder="Title" required>
-      <input type="text" name="tags" placeholder="Tags (comma-separated)">
-      <input type="file" name="media" accept="image/*,video/*" required>
-      <button type="submit">Upload</button>
-    </form>
-    <div id="admin-media-grid" class="grid"></div>
-  </div>
+
   <script src="js/admin.js"></script>
 </body>
 </html>
