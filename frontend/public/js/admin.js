@@ -1,36 +1,23 @@
-// ===============================
-// VelvetHub Admin Panel Script
-// ===============================
+document.addEventListener("DOMContentLoaded", () => {
 
-const API_BASE = "/api/admin";
+  const loginForm = document.getElementById("loginForm");
+  const uploadForm = document.getElementById("uploadForm");
+  const loginBox = document.getElementById("loginBox");
+  const uploadBox = document.getElementById("uploadBox");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-// -------------------------------
-// Elements
-// -------------------------------
-const loginForm = document.getElementById("login-form");
-const uploadForm = document.getElementById("upload-form");
-const dashboard = document.getElementById("dashboard");
+  // ===============================
+  // AUTH CHECK
+  // ===============================
+  const token = localStorage.getItem("adminToken");
+  if (token) {
+    loginBox.style.display = "none";
+    uploadBox.style.display = "block";
+  }
 
-// -------------------------------
-// JWT helpers
-// -------------------------------
-function setToken(token) {
-  localStorage.setItem("admin_token", token);
-}
-
-function getToken() {
-  return localStorage.getItem("admin_token");
-}
-
-function logout() {
-  localStorage.removeItem("admin_token");
-  location.reload();
-}
-
-// -------------------------------
-// LOGIN
-// -------------------------------
-if (loginForm) {
+  // ===============================
+  // LOGIN
+  // ===============================
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -38,10 +25,10 @@ if (loginForm) {
     const password = document.getElementById("password").value.trim();
 
     try {
-      const res = await fetch(`${API_BASE}/login`, {
+      const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
@@ -51,29 +38,18 @@ if (loginForm) {
         return;
       }
 
-      setToken(data.token);
+      localStorage.setItem("adminToken", data.token);
+      location.reload();
 
-      loginForm.style.display = "none";
-      dashboard.style.display = "block";
     } catch (err) {
       console.error(err);
       alert("Server error during login");
     }
   });
-}
 
-// -------------------------------
-// AUTO LOGIN CHECK
-// -------------------------------
-if (getToken()) {
-  if (loginForm) loginForm.style.display = "none";
-  if (dashboard) dashboard.style.display = "block";
-}
-
-// -------------------------------
-// UPLOAD MEDIA
-// -------------------------------
-if (uploadForm) {
+  // ===============================
+  // UPLOAD MEDIA
+  // ===============================
   uploadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -82,34 +58,30 @@ if (uploadForm) {
     const fileInput = document.getElementById("file");
 
     if (!fileInput.files.length) {
-      alert("Please select a file");
+      alert("Please choose a file");
       return;
     }
 
     const file = fileInput.files[0];
 
-    // ✅ FIXED TYPE LOGIC
-    let mediaType = "";
-    if (file.type.startsWith("image/")) mediaType = "photo";
-    else if (file.type.startsWith("video/")) mediaType = "video";
-    else {
-      alert("Only image or video allowed");
-      return;
-    }
+    // IMPORTANT: backend expects "photo" or "video"
+    const mediaType = file.type.startsWith("video/")
+      ? "video"
+      : "photo";
 
     const formData = new FormData();
     formData.append("title", title);
     formData.append("tags", tags);
-    formData.append("type", mediaType); // ✅ MUST MATCH SCHEMA
+    formData.append("type", mediaType);
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${API_BASE}/upload`, {
+      const res = await fetch("/api/admin/upload", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${getToken()}`,
+          Authorization: "Bearer " + localStorage.getItem("adminToken")
         },
-        body: formData,
+        body: formData
       });
 
       const data = await res.json();
@@ -122,9 +94,19 @@ if (uploadForm) {
 
       alert("Upload successful ✅");
       uploadForm.reset();
+
     } catch (err) {
       console.error(err);
       alert("Server error during upload");
     }
   });
-}
+
+  // ===============================
+  // LOGOUT
+  // ===============================
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("adminToken");
+    location.reload();
+  });
+
+});
