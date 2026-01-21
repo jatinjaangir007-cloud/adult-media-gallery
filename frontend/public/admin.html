@@ -3,43 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <title>VelvetHub Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/styles.css" />
 
   <style>
     body {
-      background: linear-gradient(135deg, #000, #111);
-      font-family: Arial, sans-serif;
+      background: #000;
       color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
     }
 
     .card {
-      background: rgba(0,0,0,0.85);
+      background: #0d0d0d;
       padding: 30px;
       border-radius: 16px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 0 40px rgba(255,0,0,0.3);
+      width: 360px;
+      box-shadow: 0 0 40px rgba(255, 0, 0, 0.25);
     }
 
     h2 {
       text-align: center;
-      color: #ff4444;
+      color: #ff3d3d;
       margin-bottom: 20px;
     }
 
     input, button {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
+      margin-bottom: 12px;
       border-radius: 8px;
       border: none;
-      font-size: 16px;
+      font-size: 15px;
     }
 
     input {
@@ -48,46 +50,85 @@
     }
 
     button {
-      background: #ff4444;
+      background: #ff3d3d;
       color: #fff;
       cursor: pointer;
       font-weight: bold;
     }
 
     button:hover {
-      background: #ff2222;
+      background: #ff0000;
     }
 
-    #upload-form {
+    #dashboard {
       display: none;
-      margin-top: 20px;
+    }
+
+    .logout {
+      background: #444;
+      margin-top: 10px;
     }
   </style>
 </head>
-
 <body>
 
-  <div class="card">
+  <!-- LOGIN -->
+  <div class="card" id="login-wrapper">
+    <h2>Admin Login</h2>
 
-    <!-- LOGIN -->
     <form id="login-form">
-      <h2>Admin Login</h2>
-      <input id="username" placeholder="Username" required />
-      <input id="password" type="password" placeholder="Password" required />
+      <input
+        type="text"
+        id="username"
+        placeholder="Username"
+        autocomplete="username"
+        required
+      />
+
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      />
+
       <button type="submit">Login</button>
     </form>
+  </div>
 
-    <!-- UPLOAD -->
+  <!-- DASHBOARD -->
+  <div class="card" id="dashboard">
+    <h2>Upload Media</h2>
+
     <form id="upload-form" enctype="multipart/form-data">
-      <h2>Upload Media</h2>
-      <input id="title" placeholder="Title" required />
-      <input id="tags" placeholder="Tags (comma separated)" />
-      <input id="file" type="file" accept="image/*,video/*" required />
+      <input
+        type="text"
+        id="title"
+        placeholder="Title"
+        required
+      />
+
+      <input
+        type="text"
+        id="tags"
+        placeholder="Tags (comma separated)"
+      />
+
+      <input
+        type="file"
+        id="file"
+        accept="image/*,video/*"
+        required
+      />
+
       <button type="submit">Upload</button>
     </form>
 
+    <button class="logout" onclick="logout()">Logout</button>
   </div>
 
+  <!-- JS -->
   <script src="/js/admin.js"></script>
 </body>
 </html>
