@@ -1,108 +1,68 @@
 import express from "express";
 import mongoose from "mongoose";
 import path from "path";
-import dotenv from "dotenv";
-import multer from "multer";
-import Media from "./models/Media.js";
-
-dotenv.config();
+import { fileURLToPath } from "url";
+import Media from "./Media.js";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ==========================
-// MIDDLEWARE
-// ==========================
+// ===== REQUIRED FOR ES MODULES =====
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ==========================
-// STATIC FILES (VERY IMPORTANT)
-// ==========================
-const __dirname = path.resolve();
+// ===== STATIC FILES =====
+// frontend/public MUST be served as root
+const PUBLIC_DIR = path.join(__dirname, "../frontend/public");
+app.use(express.static(PUBLIC_DIR));
 
-app.use(
-  "/css",
-  express.static(path.join(__dirname, "frontend/public/css"))
-);
+// ===== ROUTES =====
 
-app.use(
-  "/js",
-  express.static(path.join(__dirname, "frontend/public/js"))
-);
+// Public homepage
+app.get("/", (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+});
 
-// ==========================
-// ADMIN PAGE
-// ==========================
+// Admin page
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/public/admin.html"));
+  res.sendFile(path.join(PUBLIC_DIR, "admin.html"));
 });
 
-// ==========================
-// DATABASE
-// ==========================
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB error:", err));
-
-// ==========================
-// FILE UPLOAD (LOCAL ONLY)
-// ==========================
-const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
-
-// ==========================
-// ADMIN UPLOAD API
-// ==========================
-app.post("/api/admin/upload", upload.single("file"), async (req, res) => {
+// ===== API =====
+app.post("/api/admin/upload", async (req, res) => {
   try {
-    const { title, tags, type } = req.body;
+    const { title, tags, cloudUrl, type } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    if (!title || !type) {
-      return res.status(400).json({ message: "Missing title or type" });
-    }
-
-    if (!["image", "video"].includes(type)) {
-      return res.status(400).json({ message: "Invalid media type" });
+    if (!title || !cloudUrl || !type) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
     const media = new Media({
       title,
       tags: tags ? tags.split(",") : [],
-      type,
-      cloudUrl: `/uploads/${req.file.filename}`
+      cloudUrl,
+      type
     });
 
     await media.save();
-
-    res.json({ success: true });
+    res.json({ message: "Upload successful" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Upload failed" });
   }
 });
 
-// ==========================
-// PUBLIC INDEX (LAST)
-// ==========================
-app.get("/", (req, res) => {
-  res.send("Public site OK");
-});
+// ===== DATABASE =====
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error(err));
 
-// ==========================
-// START SERVER
-// ==========================
+// ===== START =====
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
