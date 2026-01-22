@@ -29,10 +29,12 @@ cloudinary.config({
 /* ===================== MULTER ===================== */
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 500 * 1024 * 1024 } // 500MB
+  limits: { fileSize: 500 * 1024 * 1024 }
 });
 
-/* ===================== ADMIN LOGIN ===================== */
+/* ===================== API ROUTES ===================== */
+
+/* Admin login */
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -46,11 +48,9 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ success: false });
 });
 
-/* ===================== ADMIN UPLOAD (FIXED) ===================== */
+/* Admin upload */
 app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
   try {
-    const { title, tags } = req.body;
-
     if (!req.file) {
       return res.status(400).json({ message: 'File missing' });
     }
@@ -71,40 +71,40 @@ app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
       ).end(req.file.buffer);
     });
 
-    if (!uploadResult?.secure_url) {
-      throw new Error('Cloudinary upload failed');
-    }
-
     const media = new Media({
-      title: title || 'Untitled',
-      tags: tags ? tags.split(',').map(t => t.trim()) : [],
-      type: mediaType,                // MUST be image | video
+      title: req.body.title || 'Untitled',
+      tags: req.body.tags ? req.body.tags.split(',') : [],
+      type: mediaType,
       cloudUrl: uploadResult.secure_url
     });
 
     await media.save();
-
     res.json({ success: true });
 
   } catch (err) {
-    console.error('UPLOAD ERROR:', err);
+    console.error(err);
     res.status(500).json({ message: 'Upload failed' });
   }
 });
 
-/* ===================== FETCH MEDIA ===================== */
+/* Public media */
 app.get('/api/media', async (req, res) => {
   const media = await Media.find().sort({ createdAt: -1 });
   res.json(media);
 });
 
-/* ===================== STATIC FRONTEND ===================== */
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+/* ===================== STATIC FILES ===================== */
+const PUBLIC_DIR = path.join(__dirname, '../frontend/public');
+app.use(express.static(PUBLIC_DIR));
 
-app.get('*', (req, res) => {
-  res.sendFile(
-    path.join(__dirname, '../frontend/public/index.html')
-  );
+/* ===================== ADMIN PAGE (EXPLICIT) ===================== */
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
+});
+
+/* ===================== PUBLIC PAGE (EXPLICIT) ===================== */
+app.get('/', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 /* ===================== START SERVER ===================== */
