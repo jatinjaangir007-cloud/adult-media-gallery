@@ -2,55 +2,63 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
   const loginBox = document.getElementById('loginBox');
   const uploadBox = document.getElementById('uploadBox');
+  const uploadForm = document.getElementById('uploadForm');
   const logoutBtn = document.getElementById('logoutBtn');
 
-  // =====================
-  // AUTO LOGIN CHECK
-  // =====================
+  /* ================= AUTO LOGIN ================= */
   if (localStorage.getItem('isAdmin') === 'true') {
     loginBox.style.display = 'none';
     uploadBox.style.display = 'block';
   }
 
-  // =====================
-  // LOGIN
-  // =====================
+  /* ================= LOGIN ================= */
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
 
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!data.success) {
-        alert('Invalid username or password');
-        return;
-      }
-
-      // SAVE SESSION
-      localStorage.setItem('isAdmin', 'true');
-
-      // SHOW DASHBOARD
-      loginBox.style.display = 'none';
-      uploadBox.style.display = 'block';
-
-    } catch (err) {
-      console.error(err);
-      alert('Login failed');
+    if (!data.success) {
+      alert('Invalid credentials');
+      return;
     }
+
+    localStorage.setItem('isAdmin', 'true');
+    loginBox.style.display = 'none';
+    uploadBox.style.display = 'block';
   });
 
-  // =====================
-  // LOGOUT
-  // =====================
+  /* ================= UPLOAD ================= */
+  uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(uploadForm);
+
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || 'Upload failed');
+      return;
+    }
+
+    alert('Upload successful ✅');
+    uploadForm.reset();
+  });
+
+  /* ================= LOGOUT ================= */
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('isAdmin');
     location.reload();
