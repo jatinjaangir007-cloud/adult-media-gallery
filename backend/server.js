@@ -1,121 +1,108 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const path = require('path');
+import express from "express";
+import mongoose from "mongoose";
+import path from "path";
+import dotenv from "dotenv";
+import multer from "multer";
+import Media from "./Media.js";
 
-const Media = require('./models/Media');
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-/* ===================== BASIC MIDDLEWARE ===================== */
+// ==========================
+// MIDDLEWARE
+// ==========================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ===================== MONGODB ===================== */
+// ==========================
+// STATIC FILES (VERY IMPORTANT)
+// ==========================
+const __dirname = path.resolve();
+
+app.use(
+  "/css",
+  express.static(path.join(__dirname, "frontend/public/css"))
+);
+
+app.use(
+  "/js",
+  express.static(path.join(__dirname, "frontend/public/js"))
+);
+
+// ==========================
+// ADMIN PAGE
+// ==========================
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/public/admin.html"));
+});
+
+// ==========================
+// DATABASE
+// ==========================
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB error:', err));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error("❌ MongoDB error:", err));
 
-/* ===================== CLOUDINARY ===================== */
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-/* ===================== MULTER ===================== */
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 500 * 1024 * 1024 }
-});
-
-/* ===================== API ROUTES ===================== */
-
-/* ===================== ADMIN LOGIN ===================== */
-app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body;
-
-  if (
-    username === process.env.ADMIN_USERNAME &&
-    password === process.env.ADMIN_PASSWORD
-  ) {
-    return res.json({
-      success: true,
-      role: 'admin'
-    });
+// ==========================
+// FILE UPLOAD (LOCAL ONLY)
+// ==========================
+const storage = multer.diskStorage({
+  destination: "uploads/",
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
   }
-
-  res.status(401).json({
-    success: false,
-    message: 'Invalid credentials'
-  });
 });
 
+const upload = multer({ storage });
 
-/* Admin upload */
-app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
+// ==========================
+// ADMIN UPLOAD API
+// ==========================
+app.post("/api/admin/upload", upload.single("file"), async (req, res) => {
   try {
+    const { title, tags, type } = req.body;
+
     if (!req.file) {
-      return res.status(400).json({ message: 'File missing' });
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const isVideo = req.file.mimetype.startsWith('video');
-    const mediaType = isVideo ? 'video' : 'image';
+    if (!title || !type) {
+      return res.status(400).json({ message: "Missing title or type" });
+    }
 
-    const uploadResult = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: isVideo ? 'video' : 'image',
-          folder: 'velvethub'
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(req.file.buffer);
-    });
+    if (!["image", "video"].includes(type)) {
+      return res.status(400).json({ message: "Invalid media type" });
+    }
 
     const media = new Media({
-      title: req.body.title || 'Untitled',
-      tags: req.body.tags ? req.body.tags.split(',') : [],
-      type: mediaType,
-      cloudUrl: uploadResult.secure_url
+      title,
+      tags: tags ? tags.split(",") : [],
+      type,
+      cloudUrl: `/uploads/${req.file.filename}`
     });
 
     await media.save();
-    res.json({ success: true });
 
+    res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Upload failed' });
+    res.status(500).json({ message: "Upload failed" });
   }
 });
 
-/* Public media */
-app.get('/api/media', async (req, res) => {
-  const media = await Media.find().sort({ createdAt: -1 });
-  res.json(media);
+// ==========================
+// PUBLIC INDEX (LAST)
+// ==========================
+app.get("/", (req, res) => {
+  res.send("Public site OK");
 });
 
-/* ===================== STATIC FILES ===================== */
-const PUBLIC_DIR = path.join(__dirname, '../frontend/public');
-app.use(express.static(PUBLIC_DIR));
-
-/* ===================== ADMIN PAGE (EXPLICIT) ===================== */
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
-});
-
-/* ===================== PUBLIC PAGE (EXPLICIT) ===================== */
-app.get('/', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
-});
-
-/* ===================== START SERVER ===================== */
-const PORT = process.env.PORT || 10000;
+// ==========================
+// START SERVER
+// ==========================
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
