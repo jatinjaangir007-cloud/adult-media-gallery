@@ -1,43 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-  const uploadForm = document.getElementById('uploadForm');
+  const loginForm = document.getElementById('loginForm');
+  const loginBox = document.getElementById('loginBox');
+  const uploadBox = document.getElementById('uploadBox');
   const logoutBtn = document.getElementById('logoutBtn');
 
-  if (uploadForm) {
-    uploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  // =====================
+  // AUTO LOGIN CHECK
+  // =====================
+  if (localStorage.getItem('isAdmin') === 'true') {
+    loginBox.style.display = 'none';
+    uploadBox.style.display = 'block';
+  }
 
-      const formData = new FormData(uploadForm);
+  // =====================
+  // LOGIN
+  // =====================
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      try {
-        const res = await fetch('/api/admin/upload', {
-          method: 'POST',
-          body: formData
-        });
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-        const data = await res.json();
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
 
-        if (!res.ok) {
-          console.error(data);
-          alert('Upload failed');
-          return;
-        }
+      const data = await res.json();
 
-        alert('Upload successful');
-        uploadForm.reset();
-
-      } catch (err) {
-        console.error(err);
-        alert('Server error');
+      if (!data.success) {
+        alert('Invalid username or password');
+        return;
       }
-    });
-  }
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('adminToken');
-      location.reload();
-    });
-  }
+      // SAVE SESSION
+      localStorage.setItem('isAdmin', 'true');
 
+      // SHOW DASHBOARD
+      loginBox.style.display = 'none';
+      uploadBox.style.display = 'block';
+
+    } catch (err) {
+      console.error(err);
+      alert('Login failed');
+    }
+  });
+
+  // =====================
+  // LOGOUT
+  // =====================
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('isAdmin');
+    location.reload();
+  });
 });

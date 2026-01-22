@@ -34,7 +34,7 @@ const upload = multer({
 
 /* ===================== API ROUTES ===================== */
 
-/* Admin login */
+/* ===================== ADMIN LOGIN ===================== */
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -42,11 +42,18 @@ app.post('/api/admin/login', (req, res) => {
     username === process.env.ADMIN_USERNAME &&
     password === process.env.ADMIN_PASSWORD
   ) {
-    return res.json({ success: true });
+    return res.json({
+      success: true,
+      role: 'admin'
+    });
   }
 
-  res.status(401).json({ success: false });
+  res.status(401).json({
+    success: false,
+    message: 'Invalid credentials'
+  });
 });
+
 
 /* Admin upload */
 app.post('/api/admin/upload', upload.single('file'), async (req, res) => {
