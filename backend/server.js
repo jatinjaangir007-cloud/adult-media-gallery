@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import path from "path";
 import dotenv from "dotenv";
 import multer from "multer";
-import Media from "./Media.js";
+import Media from "./models/Media.js";
 
 dotenv.config();
 
