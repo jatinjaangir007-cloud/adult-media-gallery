@@ -7,53 +7,41 @@ import adminRoutes from "./routes/admin.js";
 import publicRoutes from "./routes/public.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-/* ==============================
-   PATH FIX (IMPORTANT)
-================================ */
+// Needed for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/* ==============================
-   MIDDLEWARE
-================================ */
+// Parse JSON
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-/* ==============================
-   SERVE FRONTEND (THE BIG FIX)
-================================ */
-app.use(express.static(path.join(__dirname, "../frontend")));
+// ✅ CORRECT FRONTEND PATH (go one level UP)
+const frontendPath = path.join(__dirname, "..", "frontend");
 
-/* ==============================
-   ROUTES
-================================ */
+// ✅ Serve static files
+app.use(express.static(frontendPath));
+
+// Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
 
-/* ==============================
-   FRONTEND PAGES
-================================ */
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
-});
-
+// Admin page
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin.html"));
+  res.sendFile(path.join(frontendPath, "admin.html"));
 });
 
-/* ==============================
-   DATABASE
-================================ */
+// Public site
+app.get("/", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
+// MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB error:", err));
+  .catch(err => console.error(err));
 
-/* ==============================
-   START SERVER
-================================ */
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
