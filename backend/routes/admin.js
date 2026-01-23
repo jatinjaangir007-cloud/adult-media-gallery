@@ -1,9 +1,9 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const multer = require("multer");
-const cloudinary = require("cloudinary").v2;
-const Media = require("../models/Media");
-const auth = require("../middleware/auth");
+import express from "express";
+import jwt from "jsonwebtoken";
+import multer from "multer";
+import cloudinary from "cloudinary";
+import Media from "../models/Media.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -39,35 +39,30 @@ router.post("/login", (req, res) => {
 // ==========================
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post(
-  "/upload",
-  auth,
-  upload.single("file"),
-  async (req, res) => {
-    try {
-      const result = await cloudinary.uploader.upload_stream(
-        { resource_type: "auto" },
-        async (error, uploaded) => {
-          if (error) return res.status(500).json({ error });
+router.post("/upload", auth, upload.single("file"), async (req, res) => {
+  try {
+    const stream = cloudinary.v2.uploader.upload_stream(
+      { resource_type: "auto" },
+      async (error, uploaded) => {
+        if (error) return res.status(500).json({ error });
 
-          const media = new Media({
-            title: req.body.title,
-            tags: req.body.tags?.split(",") || [],
-            url: uploaded.secure_url,
-            type: uploaded.resource_type
-          });
+        const media = new Media({
+          title: req.body.title,
+          tags: req.body.tags?.split(",") || [],
+          url: uploaded.secure_url,
+          type: uploaded.resource_type
+        });
 
-          await media.save();
-          res.json({ success: true });
-        }
-      );
+        await media.save();
+        res.json({ success: true });
+      }
+    );
 
-      result.end(req.file.buffer);
-    } catch (err) {
-      console.error("UPLOAD ERROR:", err);
-      res.status(500).json({ message: "Upload failed" });
-    }
+    stream.end(req.file.buffer);
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    res.status(500).json({ message: "Upload failed" });
   }
-);
+});
 
-module.exports = router;
+export default router;
