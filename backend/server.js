@@ -2,7 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
-import Media from "./Media.js";
+import Media from "./models/Media.js";
+import adminRoutes from "./routes/admin.js";
+import publicRoutes from "./routes/public.js";
+
 
 const app = express();
 const PORT = process.env.PORT || 10000;
