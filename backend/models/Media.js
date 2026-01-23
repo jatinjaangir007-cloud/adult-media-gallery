@@ -1,32 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const MediaSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true
+const mediaSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    tags: [String],
+    fileUrl: { type: String, required: true },
+    fileType: { type: String, required: true }
   },
+  { timestamps: true }
+);
 
-  tags: [{
-    type: String,
-    trim: true
-  }],
+const Media = mongoose.model("Media", mediaSchema);
 
-  type: {
-    type: String,
-    enum: ['image', 'video'],   // ✅ FIX
-    required: true
-  },
-
-  cloudUrl: {
-    type: String,
-    required: true              // ✅ Cloudinary URL
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-module.exports = mongoose.model('Media', MediaSchema);
+export default Media;
