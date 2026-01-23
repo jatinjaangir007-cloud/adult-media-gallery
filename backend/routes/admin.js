@@ -7,6 +7,12 @@ import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // ==========================
 // LOGIN
 // ==========================
@@ -49,8 +55,8 @@ router.post("/upload", auth, upload.single("file"), async (req, res) => {
         const media = new Media({
           title: req.body.title,
           tags: req.body.tags?.split(",") || [],
-          url: uploaded.secure_url,
-          type: uploaded.resource_type
+          fileUrl: uploaded.secure_url,
+          fileType: uploaded.resource_type
         });
 
         await media.save();

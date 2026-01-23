@@ -24,14 +24,16 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
 
 // Serve frontend
-app.use(express.static(path.join(__dirname, "../frontend")));
+const FRONTEND_DIR = path.join(__dirname, "../frontend/public");
+
+app.use(express.static(FRONTEND_DIR));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(FRONTEND_DIR, "index.html"));
 });
 
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin.html"));
+  res.sendFile(path.join(FRONTEND_DIR, "admin.html"));
 });
 
 // MongoDB
