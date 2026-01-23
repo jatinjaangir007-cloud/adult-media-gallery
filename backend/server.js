@@ -26,6 +26,11 @@ app.get("/", (req, res) => {
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin.html"));
 });
+app.get("/admin/dashboard", (req, res) => {
+  res.sendFile(
+    path.join(process.cwd(), "frontend", "admin-dashboard.html")
+  );
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
