@@ -1,14 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.querySelector("form");
+  const form = document.getElementById("loginForm");
+
+  if (!form) return;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const username = document.querySelector("input[name='username']").value;
-    const password = document.querySelector("input[name='password']").value;
+    const username = document.getElementById("username")?.value;
+    const password = document.getElementById("password")?.value;
+
+    if (!username || !password) {
+      alert("Missing credentials");
+      return;
+    }
 
     try {
-      const response = await fetch("/admin/login", {
+      const res = await fetch("/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -16,18 +23,21 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        alert(data.message);
+      if (!res.ok) {
+        alert(data.message || "Login failed");
         return;
       }
 
-      alert(data.message);
-      // later you can redirect to dashboard
+      alert("Login successful");
+
+      // ✅ REDIRECT AFTER LOGIN
+      window.location.href = "/admin/dashboard";
+
     } catch (err) {
-      alert("Server error");
       console.error(err);
+      alert("Server error");
     }
   });
 });
