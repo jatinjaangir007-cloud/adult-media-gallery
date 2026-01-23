@@ -1,81 +1,33 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const loginForm = document.getElementById('loginForm');
-  const loginBox = document.getElementById('loginBox');
-  const uploadBox = document.getElementById('uploadBox');
-  const uploadForm = document.getElementById('uploadForm');
-  const logoutBtn = document.getElementById('logoutBtn');
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("form");
 
-  /* ================= AUTO LOGIN ================= */
-  if (localStorage.getItem('isAdmin') === 'true') {
-    loginBox.style.display = 'none';
-    uploadBox.style.display = 'block';
-  }
-
-  /* ================= LOGIN ================= */
-  loginForm.addEventListener('submit', async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
+    const username = document.querySelector("input[name='username']").value;
+    const password = document.querySelector("input[name='password']").value;
 
-    fetch("/admin/login", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username: username.value,
-        password: password.value
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.token) {
-        localStorage.setItem("adminToken", data.token);
-        alert("Login successful");
-      } else {
-        alert(data.message || "Login failed");
+    try {
+      const response = await fetch("/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message);
+        return;
       }
-    });
 
-
-    const data = await res.json();
-
-    if (!data.success) {
-      alert('Invalid credentials');
-      return;
+      alert(data.message);
+      // later you can redirect to dashboard
+    } catch (err) {
+      alert("Server error");
+      console.error(err);
     }
-
-    localStorage.setItem('isAdmin', 'true');
-    loginBox.style.display = 'none';
-    uploadBox.style.display = 'block';
-  });
-
-  /* ================= UPLOAD ================= */
-  uploadForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(uploadForm);
-
-    const res = await fetch('/api/admin/upload', {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.message || 'Upload failed');
-      return;
-    }
-
-    alert('Upload successful ✅');
-    uploadForm.reset();
-  });
-
-  /* ================= LOGOUT ================= */
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('isAdmin');
-    location.reload();
   });
 });
