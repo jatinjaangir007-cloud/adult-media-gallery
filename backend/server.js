@@ -15,19 +15,22 @@ const PORT = process.env.PORT || 10000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
+// ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API routes
+// ================= API ROUTES =================
 app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
 
-// Serve frontend
+// ================= FRONTEND PATH =================
+// ../frontend/public
 const FRONTEND_DIR = path.join(__dirname, "../frontend/public");
 
+// 🔥 THIS IS THE MOST IMPORTANT LINE
 app.use(express.static(FRONTEND_DIR));
 
+// ================= PAGES =================
 app.get("/", (req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, "index.html"));
 });
@@ -36,13 +39,13 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, "admin.html"));
 });
 
-// MongoDB
+// ================= DATABASE =================
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB error:", err));
 
-// Start server
+// ================= START SERVER =================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
