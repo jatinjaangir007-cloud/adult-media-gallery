@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import adminRoutes from "./routes/admin.js";
-import mediaRoutes from "./routes/media.js";
+import publicRoutes from "./routes/public.js";
 
 dotenv.config();
 
@@ -35,7 +35,7 @@ app.use("/js", express.static(path.join(__dirname, "../frontend/js")));
 // Routes
 // --------------------
 app.use("/admin", adminRoutes);
-app.use("/api/media", mediaRoutes);
+app.use("/api/media", publicRoutes);
 
 // --------------------
 // Pages
