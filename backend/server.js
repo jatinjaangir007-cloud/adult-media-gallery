@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import adminRoutes from "./routes/admin.js";
+import mediaRoutes from "./routes/media.js";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -12,11 +13,11 @@ const __dirname = path.dirname(__filename);
 // ✅ MUST HAVE (this was missing earlier)
 app.use(express.json());
 
-// ✅ Frontend static files
+// Serve frontend static files
 app.use(express.static(path.join(__dirname, "../frontend")));
-
 // ✅ Admin API
 app.use("/admin", adminRoutes);
+app.use("/media", mediaRoutes);
 
 // ✅ Routes for HTML pages
 app.get("/", (req, res) => {
