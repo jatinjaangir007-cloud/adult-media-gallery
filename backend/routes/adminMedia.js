@@ -12,43 +12,53 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-/* Multer memory storage */
+/* Multer */
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 /* UPLOAD MEDIA */
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const base64 = req.file.buffer.toString('base64');
+    const { title = "", tags = "" } = req.body;
 
+    const base64 = req.file.buffer.toString("base64");
     const result = await cloudinary.v2.uploader.upload(
       `data:${req.file.mimetype};base64,${base64}`,
-      { resource_type: 'auto' }
+      { resource_type: "auto" }
     );
 
     const media = await Media.create({
-      title: req.file.originalname,          // ✅ REQUIRED
-      fileUrl: result.secure_url,             // ✅ REQUIRED
-      fileType: result.resource_type          // ✅ REQUIRED
+      title: title || req.file.originalname,
+      fileUrl: result.secure_url,
+      fileType: result.resource_type,
+      tags: tags.split(",").map(t => t.trim()).filter(Boolean),
     });
 
-    res.status(200).json(media);
-
+    res.json(media);
   } catch (err) {
-    console.error('🔥 Upload error:', err);
-    res.status(500).json({ error: 'Upload failed' });
+    console.error("🔥 Upload error:", err);
+    res.status(500).json({ error: "Upload failed" });
   }
 });
 
-
-/* GET MEDIA */
+/* GET ALL MEDIA */
 router.get("/", async (req, res) => {
   const media = await Media.find().sort({ createdAt: -1 });
   res.json(media);
+});
+
+/* DELETE MEDIA */
+router.delete("/:id", async (req, res) => {
+  try {
+    await Media.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Delete failed" });
+  }
 });
 
 export default router;
