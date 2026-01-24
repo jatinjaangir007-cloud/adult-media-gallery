@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = new FormData();
     formData.append('media', fileInput.files[0]);
 
-    const res = await fetch('/api/admin/media/upload', {
+    const res = await fetch("/media/upload", {
       method: 'POST',
       body: formData
     });
