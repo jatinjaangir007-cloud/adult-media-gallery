@@ -10,16 +10,17 @@ const PORT = process.env.PORT || 10000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ MUST HAVE (this was missing earlier)
+// REQUIRED
 app.use(express.json());
 
-// Serve frontend static files
+// ✅ Serve frontend correctly
 app.use(express.static(path.join(__dirname, "../frontend")));
-// ✅ Admin API
+
+// APIs
 app.use("/admin", adminRoutes);
 app.use("/media", mediaRoutes);
 
-// ✅ Routes for HTML pages
+// Pages
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
@@ -27,10 +28,10 @@ app.get("/", (req, res) => {
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin.html"));
 });
-// Admin dashboard
+
 app.get("/admin/dashboard", (req, res) => {
   res.sendFile(
-    path.join(__dirname, "..", "frontend", "admin-dashboard.html")
+    path.join(__dirname, "../frontend/admin-dashboard.html")
   );
 });
 

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadMedia() {
     mediaList.innerHTML = "Loading...";
     try {
-      const res = await fetch("/api/media");
+      const res = await fetch("/media");
       const data = await res.json();
 
       mediaList.innerHTML = "";
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         card.querySelector(".delete").onclick = async () => {
-          await fetch(`/api/media/${item._id}`, { method: "DELETE" });
+          await fetch(`/media/${item._id}`, { method: "DELETE" });
           loadMedia();
         };
 
@@ -49,13 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
   uploadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const file = document.getElementById("file").files[0];
-    if (!file) return alert("Select a file");
+    const fileInput = document.getElementById("file");
+    if (!fileInput || !fileInput.files[0]) {
+      return alert("Select a file");
+    }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", fileInput.files[0]);
 
-    const res = await fetch("/api/media/upload", {
+    const res = await fetch("/media/upload", {
       method: "POST",
       body: formData
     });
