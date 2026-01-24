@@ -3,29 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css" />
   <style>
     body {
-      background: #0f0f0f;
+      background: #0b0b0b;
       color: #fff;
       font-family: Arial, sans-serif;
-      padding: 40px;
+      padding: 20px;
     }
+
     h1 {
       color: #ff4d4d;
     }
-    a {
-      color: #4da6ff;
-      text-decoration: none;
+
+    form {
+      margin-bottom: 30px;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .media-card {
+      background: #111;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    img, video {
+      width: 100%;
+      border-radius: 6px;
+    }
+
+    button.delete {
+      background: red;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-top: 5px;
+      width: 100%;
     }
   </style>
 </head>
 <body>
+
   <h1>✅ Admin Dashboard</h1>
   <p>You are logged in successfully.</p>
 
-  <ul>
-    <li><a href="/">Go to Public Site</a></li>
-    <li><a href="/admin">Logout (manual)</a></li>
-  </ul>
+  <h2>Upload Media</h2>
+  <form id="uploadForm">
+    <input type="file" id="file" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <h2>Uploaded Media</h2>
+  <div class="media-grid" id="mediaList"></div>
+
+  <br />
+  <a href="/">Go to Public Site</a>
+
+  <script src="/js/admin-dashboard.js"></script>
 </body>
 </html>
