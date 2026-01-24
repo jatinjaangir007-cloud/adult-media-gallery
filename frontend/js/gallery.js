@@ -56,11 +56,20 @@ document.addEventListener('DOMContentLoaded', () => {
         media.forEach(item => {
           const div = document.createElement('div');
           div.className = 'media-item';
-          if (item.type === 'video') {
-            div.innerHTML = `<video controls preload="metadata"><source src="${item.cloudUrl}" type="video/mp4"></video><p>${item.title}</p><p>Tags: ${item.tags.join(', ')}</p>`;
-          } else {
-            div.innerHTML = `<img src="${item.cloudUrl}" alt="${item.title}"><p>${item.title}</p><p>Tags: ${item.tags.join(', ')}</p>`;
-          }
+         if (item.fileType === 'video') {
+           div.innerHTML = `
+             <video controls preload="metadata">
+                <source src="${item.fileUrl}" type="video/mp4">
+             </video>
+             <p>${item.title}</p>
+           `;
+         } else {
+           div.innerHTML = `
+             <img src="${item.fileUrl}" alt="${item.title}">
+             <p>${item.title}</p>
+           `;
+         }
+
           mediaGrid.appendChild(div);
         });
       }
