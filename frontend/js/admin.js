@@ -6,8 +6,16 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const username = document.getElementById("username")?.value;
-    const password = document.getElementById("password")?.value;
+    const usernameEl = document.getElementById("username");
+    const passwordEl = document.getElementById("password");
+
+    if (!usernameEl || !passwordEl) {
+      alert("Login inputs not found");
+      return;
+    }
+
+    const username = usernameEl.value.trim();
+    const password = passwordEl.value.trim();
 
     if (!username || !password) {
       alert("Missing credentials");
@@ -15,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("/admin/login", {
+      const res = await fetch("/api/admin/login", {   // ✅ FIXED PATH
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,21 +31,21 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        alert(data.message || "Login failed");
+        const text = await res.text();
+        alert("Login failed: " + text);
         return;
       }
 
+      const data = await res.json();
       alert("Login successful");
 
-      // ✅ REDIRECT AFTER LOGIN
+      // redirect
       window.location.href = "/admin/dashboard";
 
     } catch (err) {
-      console.error(err);
-      alert("Server error");
+      console.error("Login error:", err);
+      alert("Server error during login");
     }
   });
 });
