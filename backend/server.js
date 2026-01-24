@@ -26,9 +26,10 @@ app.get("/", (req, res) => {
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin.html"));
 });
+// Admin dashboard
 app.get("/admin/dashboard", (req, res) => {
   res.sendFile(
-    path.join(process.cwd(), "frontend", "admin-dashboard.html")
+    path.join(__dirname, "..", "frontend", "admin-dashboard.html")
   );
 });
 
