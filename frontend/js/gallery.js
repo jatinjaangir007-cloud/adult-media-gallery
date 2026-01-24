@@ -1,4 +1,3 @@
-const API_URL = window.location.origin;
 const gallery = document.getElementById("gallery");
 const searchInput = document.getElementById("search");
 
@@ -6,15 +5,16 @@ let mediaData = [];
 
 async function fetchMedia() {
   try {
-    const res = await fetch('/api/admin/media');
+    // ✅ PUBLIC API (NOT admin)
+    const res = await fetch('/api/media');
 
     if (!res.ok) {
       throw new Error('Failed to fetch media');
     }
 
-    const media = await res.json();
+    mediaData = await res.json();
+    renderMedia(mediaData);
 
-    renderMedia(media);
   } catch (err) {
     console.error('Failed to load media', err);
   }
@@ -23,7 +23,7 @@ async function fetchMedia() {
 function renderMedia(data) {
   gallery.innerHTML = "";
 
-  if (data.length === 0) {
+  if (!data.length) {
     gallery.innerHTML = "<p style='opacity:0.6'>No media found.</p>";
     return;
   }
@@ -32,34 +32,33 @@ function renderMedia(data) {
     const card = document.createElement("div");
     card.className = "media-card";
 
-    let mediaElement;
-
-    if (media.type === "video") {
-      mediaElement = document.createElement("video");
-      mediaElement.src = media.url;
-      mediaElement.controls = true;
+    let el;
+    if (media.fileType === "video") {
+      el = document.createElement("video");
+      el.src = media.fileUrl;
+      el.controls = true;
     } else {
-      mediaElement = document.createElement("img");
-      mediaElement.src = media.url;
+      el = document.createElement("img");
+      el.src = media.fileUrl;
     }
 
-    const info = document.createElement("div");
-    info.className = "media-info";
-    info.textContent = media.title || "Untitled";
+    const title = document.createElement("div");
+    title.className = "media-info";
+    title.textContent = media.title || "Untitled";
 
-    card.appendChild(mediaElement);
-    card.appendChild(info);
+    card.appendChild(el);
+    card.appendChild(title);
     gallery.appendChild(card);
   });
 }
 
 searchInput.addEventListener("input", e => {
-  const query = e.target.value.toLowerCase();
-  const filtered = mediaData.filter(item =>
-    item.title?.toLowerCase().includes(query) ||
-    item.tags?.join(" ").toLowerCase().includes(query)
+  const q = e.target.value.toLowerCase();
+  renderMedia(
+    mediaData.filter(m =>
+      m.title?.toLowerCase().includes(q)
+    )
   );
-  renderMedia(filtered);
 });
 
 fetchMedia();
