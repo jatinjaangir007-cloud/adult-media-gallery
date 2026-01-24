@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
+
+  <!-- If styles.css exists & is served correctly -->
   <link rel="stylesheet" href="/css/styles.css" />
+
   <style>
     body {
       background: #0b0b0b;
@@ -59,7 +62,8 @@
 
   <h2>Upload Media</h2>
   <form id="uploadForm">
-    <input type="file" id="file" required />
+    <!-- ✅ FIX HERE -->
+    <input type="file" id="media" required />
     <button type="submit">Upload</button>
   </form>
 

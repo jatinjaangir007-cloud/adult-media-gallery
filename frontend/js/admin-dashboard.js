@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('uploadForm');
+  const uploadForm = document.getElementById('uploadForm');
   const mediaList = document.getElementById('mediaList');
 
   async function loadMedia() {
@@ -15,20 +15,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       data.forEach(item => {
-        const el = document.createElement('div');
-        el.innerHTML = `<a href="${item.url}" target="_blank">${item.url}</a>`;
-        mediaList.appendChild(el);
+        const div = document.createElement('div');
+        div.innerHTML = `<a href="${item.url}" target="_blank">${item.url}</a>`;
+        mediaList.appendChild(div);
       });
     } catch (err) {
       mediaList.innerHTML = '<p>Error loading media</p>';
     }
   }
 
-  form.addEventListener('submit', async (e) => {
+  uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fileInput = document.getElementById('media');
-    if (!fileInput.files.length) return alert('Select a file');
+    const fileInput = document.getElementById('media'); // ✅ now exists
+    if (!fileInput || !fileInput.files.length) {
+      alert('Select a file');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('media', fileInput.files[0]);
@@ -41,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (res.ok) {
       alert('Upload successful');
       loadMedia();
+      uploadForm.reset();
     } else {
       alert('Upload failed');
     }
