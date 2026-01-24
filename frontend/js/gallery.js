@@ -6,11 +6,17 @@ let mediaData = [];
 
 async function fetchMedia() {
   try {
-    const res = await fetch(`${API_URL}/api/public/media`);
-    mediaData = await res.json();
-    renderMedia(mediaData);
+    const res = await fetch('/api/admin/media');
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch media');
+    }
+
+    const media = await res.json();
+
+    renderMedia(media);
   } catch (err) {
-    console.error("Failed to load media", err);
+    console.error('Failed to load media', err);
   }
 }
 
