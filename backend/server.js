@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Routes
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin/media', mediaRoutes);
+app.use('/media', mediaRoutes); // ✅ FIXED
 
 // Pages
 app.get('/admin', (req, res) => {

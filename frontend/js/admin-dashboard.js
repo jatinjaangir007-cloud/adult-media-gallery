@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadMedia() {
     try {
-      const res = await fetch('/api/admin/media');
+      const res = await fetch('/media'); // ✅ FIXED
       const data = await res.json();
 
       mediaList.innerHTML = '';
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         div.innerHTML = `<a href="${item.url}" target="_blank">${item.url}</a>`;
         mediaList.appendChild(div);
       });
-    } catch (err) {
+    } catch {
       mediaList.innerHTML = '<p>Error loading media</p>';
     }
   }
@@ -27,24 +27,24 @@ document.addEventListener('DOMContentLoaded', () => {
   uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fileInput = document.getElementById('media'); // ✅ now exists
+    const fileInput = document.getElementById('media');
     if (!fileInput || !fileInput.files.length) {
       alert('Select a file');
       return;
     }
 
     const formData = new FormData();
-    formData.append('media', fileInput.files[0]);
+    formData.append('file', fileInput.files[0]); // ✅ FIXED
 
-    const res = await fetch("/media/upload", {
+    const res = await fetch('/media/upload', {
       method: 'POST',
       body: formData
     });
 
     if (res.ok) {
       alert('Upload successful');
-      loadMedia();
       uploadForm.reset();
+      loadMedia();
     } else {
       alert('Upload failed');
     }

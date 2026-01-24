@@ -21,8 +21,12 @@ router.get('/', async (req, res) => {
 });
 
 // UPLOAD media
-router.post('/upload', upload.single('media'), async (req, res) => {
+router.post('/upload', upload.single('file'), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
     const result = await cloudinary.v2.uploader.upload(
       `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
       { resource_type: 'auto' }
@@ -35,5 +39,6 @@ router.post('/upload', upload.single('media'), async (req, res) => {
     res.status(500).json({ error: 'Upload failed' });
   }
 });
+
 
 export default router;
