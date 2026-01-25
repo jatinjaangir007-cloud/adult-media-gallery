@@ -61,4 +61,14 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
+// PUBLIC MEDIA LIST (NO AUTH)
+router.get('/public', async (req, res) => {
+  try {
+    const media = await Media.find().sort({ createdAt: -1 });
+    res.json(media);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to load media' });
+  }
+});
+
 export default router;

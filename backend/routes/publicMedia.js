@@ -1,5 +1,5 @@
 import express from 'express';
-import Media from '../models/media.js';
+import Media from '../models/Media.js';
 
 const router = express.Router();
 
