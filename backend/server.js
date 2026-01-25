@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 
 import adminRoutes from './routes/admin.js';
 import mediaRoutes from './routes/adminMedia.js';
+import publicMediaRoutes from './routes/publicMedia.js';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/media', mediaRoutes); // ✅ FIXED
+app.use('/api/public/media', publicMediaRoutes);
 
 // Pages
 app.get('/admin', (req, res) => {
