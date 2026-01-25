@@ -1,6 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const uploadForm = document.getElementById("uploadForm");
   const mediaList = document.getElementById("mediaList");
+  const token = localStorage.getItem("token");
+
+     if (!token) {
+       window.location.href = "/admin";
+     }
 
   async function loadMedia() {
     const res = await fetch("/media");
@@ -23,7 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       card.querySelector(".delete").onclick = async () => {
         if (!confirm("Delete this media?")) return;
-        await fetch(`/media/${item._id}`, { method: "DELETE" });
+        await fetch(`/media/${item._id}`, {
+           method: "DELETE",
+           headers: {
+             Authorization: `Bearer ${token}`
+           }
+        });
+
         loadMedia();
       };
 
@@ -43,10 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("title", title);
     formData.append("tags", tags);
 
-    await fetch("/media/upload", {
-      method: "POST",
-      body: formData
-    });
+   await fetch("/media/upload", {
+     method: "POST",
+     headers: {
+        Authorization: `Bearer ${token}`
+     },
+     body: formData
+   });
 
     uploadForm.reset();
     loadMedia();

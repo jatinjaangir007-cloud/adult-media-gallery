@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
 
-const auth = (req, res, next) => {
+export default function auth(req, res, next) {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    return res.status(401).json({ message: "No token provided" });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   const token = authHeader.split(" ")[1];
@@ -12,9 +12,9 @@ const auth = (req, res, next) => {
   try {
     jwt.verify(token, process.env.JWT_SECRET);
     next();
-  } catch (err) {
-    return res.status(403).json({ message: "Invalid or expired token" });
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
   }
-};
+}
 
 export default auth;

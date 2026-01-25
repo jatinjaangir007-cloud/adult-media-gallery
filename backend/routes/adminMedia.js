@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import cloudinary from "cloudinary";
 import Media from "../models/Media.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -17,8 +18,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 /* UPLOAD MEDIA */
-router.post("/upload", upload.single("file"), async (req, res) => {
-  try {
+router.post("/upload", auth, upload.single("file"), async (req, res) => {  try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
@@ -52,7 +52,7 @@ router.get("/", async (req, res) => {
 });
 
 /* DELETE MEDIA */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
     await Media.findByIdAndDelete(req.params.id);
     res.json({ success: true });
