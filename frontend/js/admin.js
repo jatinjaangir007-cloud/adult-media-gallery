@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
-
   if (!form) return;
 
   form.addEventListener("submit", async (e) => {
@@ -23,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("/api/admin/login", {   // ✅ FIXED PATH
+      const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,16 +30,20 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const text = await res.text();
-        alert("Login failed: " + text);
+        alert(data.error || "Login failed");
         return;
       }
 
-      const data = await res.json();
-      alert("Login successful");
+      // ✅ THIS WAS MISSING (CRITICAL)
+      localStorage.setItem("token", data.token);
 
-      // redirect
+      // optional sanity check
+      console.log("JWT stored:", data.token);
+
+      // redirect AFTER token is saved
       window.location.href = "/admin/dashboard";
 
     } catch (err) {
