@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 
-import adminAuthRoutes from './routes/adminauth.js';
+import adminAuthRoutes from './routes/adminAuth.js';
 import adminMediaRoutes from './routes/adminMedia.js';
 
 const __filename = fileURLToPath(import.meta.url);
