@@ -1,85 +1,54 @@
-/* =========================
-   Imports (ESM)
-========================= */
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-/* =========================
-   Route Imports
-========================= */
 import adminMediaRoutes from './routes/adminMedia.js';
 import publicMediaRoutes from './routes/publicMedia.js';
+import adminAuthRoutes from './routes/adminAuth.js';
 
-/* =========================
-   Config
-========================= */
 dotenv.config();
 const app = express();
 
-/* =========================
-   __dirname for ESM
-========================= */
+/* ===== ESM dirname ===== */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/* =========================
-   Middleware
-========================= */
+/* ===== Middleware ===== */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* =========================
-   Static Files
-========================= */
+/* ===== Static ===== */
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-/* =========================
-   API Routes
-========================= */
-
-// admin upload / delete / list
+/* ===== API ROUTES ===== */
+app.use('/api/admin', adminAuthRoutes);      // ✅ LOGIN FIX
 app.use('/api/admin/media', adminMediaRoutes);
-
-// public gallery fetch
 app.use('/api/media', publicMediaRoutes);
 
-/* =========================
-   Frontend Routes
-========================= */
+/* ===== Pages ===== */
+app.get('/', (req, res) =>
+  res.sendFile(path.join(__dirname, '../frontend/index.html'))
+);
 
-// public site
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
+app.get('/admin', (req, res) =>
+  res.sendFile(path.join(__dirname, '../frontend/admin.html'))
+);
 
-// admin login
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin.html'));
-});
+app.get('/dashboard', (req, res) =>
+  res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'))
+);
 
-// admin dashboard
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'));
-});
-
-/* =========================
-   MongoDB
-========================= */
+/* ===== Mongo ===== */
 mongoose
-  .connect(process.env.MONGO_URI, {
-    dbName: 'adultMediaGallery'
-  })
+  .connect(process.env.MONGO_URI, { dbName: 'adultMediaGallery' })
   .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('❌ MongoDB error:', err));
+  .catch(err => console.error('❌ Mongo error', err));
 
-/* =========================
-   Start Server
-========================= */
+/* ===== Server ===== */
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on ${PORT}`);
 });
