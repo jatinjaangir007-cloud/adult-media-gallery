@@ -65,6 +65,24 @@
   <button type="submit">Upload</button>
 </form>
 
+<!-- Upload Status -->
+<div id="uploadStatus" style="margin-top:15px; display:none;">
+  <div id="uploadText">Uploading...</div>
+
+  <div style="background:#333; border-radius:5px; overflow:hidden;">
+    <div id="uploadBar"
+      style="width:0%; height:12px; background:#ff4444;"></div>
+  </div>
+
+  <small id="uploadSize"></small>
+
+  <div style="margin-top:8px;">
+    <button type="button" id="pauseBtn">Pause</button>
+    <button type="button" id="resumeBtn" style="display:none;">Resume</button>
+  </div>
+</div>
+
+
 <div class="media-grid" id="mediaList"></div>
 
 <script src="/js/admin-dashboard.js"></script>
