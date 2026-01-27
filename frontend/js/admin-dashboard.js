@@ -1,53 +1,58 @@
-const uploadForm = document.getElementById('uploadForm');
-const progressBar = document.getElementById('progressBar');
-const progressText = document.getElementById('progressText');
-const statusText = document.getElementById('statusText');
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('uploadForm');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const statusText = document.getElementById('statusText');
 
-uploadForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  const title = document.getElementById('title').value;
-  const tags = document.getElementById('tags').value;
-  const fileInput = document.getElementById('file');
-
-  if (!fileInput.files.length) {
-    alert('Please select a file');
+  if (!form) {
+    console.error('Upload form not found');
     return;
   }
 
-  const file = fileInput.files[0];
-  const formData = new FormData();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  formData.append('file', file);
-  formData.append('title', title);
-  formData.append('tags', tags);
+    const fileInput = document.getElementById('file');
+    const title = document.getElementById('title').value;
+    const tags = document.getElementById('tags').value;
 
-  const xhr = new XMLHttpRequest();
-
-  // ✅ FIXED URL — THIS IS THE CORE BUG
-  xhr.open('POST', '/api/admin/media/upload', true);
-
-  xhr.upload.onprogress = (e) => {
-    if (e.lengthComputable) {
-      const percent = ((e.loaded / e.total) * 100).toFixed(2);
-      progressBar.style.width = percent + '%';
-      progressText.innerText = `${(e.loaded / 1024 / 1024).toFixed(2)} MB / ${(e.total / 1024 / 1024).toFixed(2)} MB`;
+    if (!fileInput.files.length) {
+      alert('Please select a file');
+      return;
     }
-  };
 
-  xhr.onload = () => {
-    if (xhr.status === 200) {
-      statusText.innerHTML = 'Upload completed ✅';
-      progressBar.style.width = '100%';
-    } else {
-      statusText.innerHTML = 'Upload failed ❌';
-      console.error(xhr.responseText);
-    }
-  };
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('title', title);
+    formData.append('tags', tags);
 
-  xhr.onerror = () => {
-    statusText.innerHTML = 'Upload failed ❌';
-  };
+    const xhr = new XMLHttpRequest();
 
-  xhr.send(formData);
+    xhr.open('POST', '/api/admin/media/upload', true);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        progressBar.style.width = percent + '%';
+        progressText.innerText = `${(e.loaded / 1024 / 1024).toFixed(2)} MB / ${(e.total / 1024 / 1024).toFixed(2)} MB`;
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        statusText.innerText = 'Upload completed ✅';
+        statusText.style.color = 'lime';
+      } else {
+        statusText.innerText = 'Upload failed ❌';
+        statusText.style.color = 'red';
+      }
+    };
+
+    xhr.onerror = () => {
+      statusText.innerText = 'Upload error ❌';
+      statusText.style.color = 'red';
+    };
+
+    xhr.send(formData);
+  });
 });
