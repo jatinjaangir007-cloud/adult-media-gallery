@@ -1,5 +1,5 @@
 /* =========================
-   Imports (ESM compatible)
+   Imports (ESM)
 ========================= */
 import express from 'express';
 import mongoose from 'mongoose';
@@ -12,23 +12,21 @@ import { fileURLToPath } from 'url';
 ========================= */
 import adminMediaRoutes from './routes/adminMedia.js';
 import publicMediaRoutes from './routes/publicMedia.js';
-import authRoutes from './routes/auth.js';
 
 /* =========================
    Config
 ========================= */
 dotenv.config();
-
 const app = express();
 
 /* =========================
-   __dirname fix for ESM
+   __dirname for ESM
 ========================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* =========================
-   Middlewares
+   Middleware
 ========================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,18 +34,12 @@ app.use(express.urlencoded({ extended: true }));
 /* =========================
    Static Files
 ========================= */
-// uploaded videos/images
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// frontend static
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 /* =========================
    API Routes
 ========================= */
-
-// auth
-app.use('/api/auth', authRoutes);
 
 // admin upload / delete / list
 app.use('/api/admin/media', adminMediaRoutes);
@@ -75,24 +67,19 @@ app.get('/dashboard', (req, res) => {
 });
 
 /* =========================
-   MongoDB Connection
+   MongoDB
 ========================= */
 mongoose
   .connect(process.env.MONGO_URI, {
     dbName: 'adultMediaGallery'
   })
-  .then(() => {
-    console.log('✅ MongoDB connected');
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB error:', err);
-  });
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB error:', err));
 
 /* =========================
-   Server Start
+   Start Server
 ========================= */
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
