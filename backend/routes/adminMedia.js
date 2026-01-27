@@ -1,74 +1,55 @@
-import express from "express";
-import multer from "multer";
-import cloudinary from "cloudinary";
-import Media from "../models/Media.js";
-import auth from "../middleware/auth.js";
-
+const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-/* Cloudinary config */
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+const uploadDir = path.join(__dirname, '../../uploads/videos');
+
+// ensure upload folder exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// ✅ DISK STORAGE (NOT MEMORY)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + ext);
+  }
 });
 
-/* Multer */
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// ✅ SAFE LIMITS (Render free)
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 1024 * 1024 * 1024 // 1 GB
+  }
+});
 
-/* UPLOAD MEDIA */
-router.post("/upload", auth, upload.single("file"), async (req, res) => {  try {
+router.post('/upload', upload.single('file'), (req, res) => {
+  try {
     if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    const { title = "", tags = "" } = req.body;
+    // ⚠️ IMPORTANT:
+    // NO fs.readFile
+    // NO ffmpeg
+    // NO processing here
 
-    const base64 = req.file.buffer.toString("base64");
-    const result = await cloudinary.v2.uploader.upload(
-      `data:${req.file.mimetype};base64,${base64}`,
-      { resource_type: "auto" }
-    );
-
-    const media = await Media.create({
-      title: title || req.file.originalname,
-      fileUrl: result.secure_url,
-      fileType: result.resource_type,
-      tags: tags.split(",").map(t => t.trim()).filter(Boolean),
+    res.json({
+      success: true,
+      filename: req.file.filename,
+      size: req.file.size
     });
-
-    res.json(media);
   } catch (err) {
-    console.error("🔥 Upload error:", err);
-    res.status(500).json({ error: "Upload failed" });
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 });
 
-/* GET ALL MEDIA */
-router.get("/", async (req, res) => {
-  const media = await Media.find().sort({ createdAt: -1 });
-  res.json(media);
-});
-
-/* DELETE MEDIA */
-router.delete("/:id", auth, async (req, res) => {
-  try {
-    await Media.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "Delete failed" });
-  }
-});
-
-// PUBLIC MEDIA LIST (NO AUTH)
-router.get('/public', async (req, res) => {
-  try {
-    const media = await Media.find().sort({ createdAt: -1 });
-    res.json(media);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to load media' });
-  }
-});
-
-export default router;
+module.exports = router;

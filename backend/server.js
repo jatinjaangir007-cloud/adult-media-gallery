@@ -1,46 +1,34 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-import adminRoutes from './routes/admin.js';
-import mediaRoutes from './routes/adminMedia.js';
-import publicMediaRoutes from './routes/publicMedia.js';
-
-dotenv.config();
+const express = require('express');
+const path = require('path');
 
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-app.use(express.json());
+// ✅ VERY IMPORTANT LIMITS
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB error', err));
+// serve uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Static frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
+// routes
+const adminMediaRoutes = require('./routes/adminMedia');
+app.use('/api/admin/media', adminMediaRoutes);
 
-// Routes
-app.use('/api/admin', adminRoutes);
-app.use('/media', mediaRoutes); // ✅ FIXED
-app.use('/api/public/media', publicMediaRoutes);
-
-// Pages
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin.html'));
+// health check
+app.get('/', (req, res) => {
+  res.send('Server running');
 });
 
-app.get('/admin/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'));
+// ✅ PREVENT CRASHES
+process.on('uncaughtException', err => {
+  console.error('Uncaught Exception:', err);
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+process.on('unhandledRejection', err => {
+  console.error('Unhandled Rejection:', err);
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
