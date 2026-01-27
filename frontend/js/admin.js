@@ -1,54 +1,37 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("loginForm");
-  if (!form) return;
+document.addEventListener('DOMContentLoaded', () => {
+  const loginBtn = document.getElementById('loginBtn');
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  if (!loginBtn) return;
 
-    const usernameEl = document.getElementById("username");
-    const passwordEl = document.getElementById("password");
-
-    if (!usernameEl || !passwordEl) {
-      alert("Login inputs not found");
-      return;
-    }
-
-    const username = usernameEl.value.trim();
-    const password = passwordEl.value.trim();
+  loginBtn.addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
 
     if (!username || !password) {
-      alert("Missing credentials");
+      alert('Enter username and password');
       return;
     }
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Login failed");
+        alert(data.message || 'Login failed');
         return;
       }
 
-      // ✅ THIS WAS MISSING (CRITICAL)
-      localStorage.setItem("token", data.token);
-
-      // optional sanity check
-      console.log("JWT stored:", data.token);
-
-      // redirect AFTER token is saved
-      window.location.href = "/admin/dashboard";
+      // ✅ SUCCESS
+      window.location.href = '/dashboard';
 
     } catch (err) {
-      console.error("Login error:", err);
-      alert("Server error during login");
+      console.error('Login error:', err);
+      alert('Server error');
     }
   });
 });
