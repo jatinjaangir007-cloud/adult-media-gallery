@@ -2,74 +2,55 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import Media from '../models/Media.js';
 
-// --------------------------------------------------
-// ESM dirname fix
-// --------------------------------------------------
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// --------------------------------------------------
-// Router
-// --------------------------------------------------
 const router = express.Router();
 
-// --------------------------------------------------
-// Upload directory
-// --------------------------------------------------
-const uploadDir = path.join(__dirname, '../../uploads/videos');
+const uploadDir = path.join(process.cwd(), 'backend/uploads/videos');
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// --------------------------------------------------
-// Multer DISK storage (Render-safe)
-// --------------------------------------------------
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
   }
 });
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 1024 * 1024 * 1024 // 1 GB
-  }
-});
+const upload = multer({ storage });
 
-// --------------------------------------------------
-// Upload route
-// --------------------------------------------------
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded'
-      });
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    return res.status(200).json({
-      success: true,
+    const { title, tags } = req.body;
+
+    // ✅ SAVE TO MONGODB (THIS WAS MISSING)
+    const media = new Media({
+      title: title || '',
+      tags: tags ? tags.split(',').map(t => t.trim()) : [],
       filename: req.file.filename,
-      size: req.file.size
+      fileUrl: `/uploads/videos/${req.file.filename}`,
+      fileType: req.file.mimetype.startsWith('video') ? 'video' : 'image',
+      createdAt: new Date()
     });
+
+    await media.save();
+
+    res.json({
+      success: true,
+      media
+    });
+
   } catch (err) {
     console.error('Upload error:', err);
-    return res.status(500).json({
-      success: false
-    });
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 
-// --------------------------------------------------
-// ✅ ONLY THIS EXPORT — NOTHING ELSE
-// --------------------------------------------------
 export default router;
