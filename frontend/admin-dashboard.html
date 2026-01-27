@@ -1,90 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       background: #0b0b0b;
       color: #fff;
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
       padding: 20px;
     }
 
+    h2 {
+      margin-bottom: 15px;
+    }
+
     input, button {
-      padding: 10px;
-      margin: 5px 0;
       width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: none;
     }
 
     button {
-      background: #ff4d4d;
-      border: none;
-      color: white;
+      background: #e50914;
+      color: #fff;
+      font-size: 16px;
       cursor: pointer;
     }
 
-    .media-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
-    .media-card {
-      background: #111;
-      padding: 10px;
-      border-radius: 6px;
-    }
-
-    img, video {
+    .progress-container {
       width: 100%;
-      border-radius: 6px;
+      background: #222;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
     }
 
-    .tags {
-      font-size: 12px;
-      opacity: 0.7;
+    #progressBar {
+      height: 10px;
+      width: 0%;
+      background: #e50914;
     }
 
-    .delete {
-      background: red;
-      margin-top: 8px;
+    #progressText, #statusText {
+      font-size: 14px;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
 
-<h1>Admin Dashboard</h1>
+  <div class="container">
+    <h2>Admin Dashboard</h2>
 
-<form id="uploadForm">
-  <input type="text" id="title" placeholder="Title" required>
-  <input type="text" id="tags" placeholder="Tags (comma separated)">
-  <input type="file" id="media" required>
-  <button type="submit">Upload</button>
-</form>
+    <input type="text" id="titleInput" placeholder="Title" />
+    <input type="text" id="tagsInput" placeholder="Tags (comma separated)" />
+    <input type="file" id="fileInput" />
 
-<!-- Upload Status -->
-<div id="uploadStatus" style="margin-top:15px; display:none;">
-  <div id="uploadText">Uploading...</div>
+    <button id="uploadBtn">Upload</button>
 
-  <div style="background:#333; border-radius:5px; overflow:hidden;">
-    <div id="uploadBar"
-      style="width:0%; height:12px; background:#ff4444;"></div>
+    <div class="progress-container">
+      <div id="progressBar"></div>
+    </div>
+
+    <div id="progressText"></div>
+    <div id="statusText"></div>
   </div>
 
-  <small id="uploadSize"></small>
-
-  <div style="margin-top:8px;">
-    <button type="button" id="pauseBtn">Pause</button>
-    <button type="button" id="resumeBtn" style="display:none;">Resume</button>
-  </div>
-</div>
-
-
-<div class="media-grid" id="mediaList"></div>
-
-<script src="/js/admin-dashboard.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
 </body>
 </html>
