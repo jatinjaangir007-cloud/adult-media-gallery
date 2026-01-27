@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+  <script>
+    if (localStorage.getItem('isAdmin') !== 'true') {
+      window.location.href = '/admin';
+    }
+  </script>
 
   <style>
     body {
@@ -82,6 +88,15 @@
     <div id="progressText"></div>
     <div id="statusText"></div>
   </div>
+
+  <button onclick="logout()">Logout</button>
+
+  <script>
+  function logout() {
+    localStorage.removeItem('isAdmin');
+    window.location.href = '/admin';
+  }
+  </script>
 
   <script src="/js/admin-dashboard.js"></script>
 </body>

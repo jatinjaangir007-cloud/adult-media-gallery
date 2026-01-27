@@ -2,11 +2,7 @@ import express from 'express';
 
 const router = express.Router();
 
-/**
- * TEMP ADMIN LOGIN
- * username: admin
- * password: admin
- */
+/* LOGIN */
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -18,6 +14,12 @@ router.post('/login', (req, res) => {
     success: false,
     message: 'Invalid credentials'
   });
+});
+
+/* SIMPLE AUTH CHECK */
+router.get('/check', (req, res) => {
+  // frontend decides using localStorage
+  res.json({ ok: true });
 });
 
 export default router;
