@@ -1,82 +1,98 @@
+/* =========================
+   Imports (ESM compatible)
+========================= */
 import express from 'express';
-import multer from 'multer';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
-import adminMediaRoutes from './routes/adminMedia.js';
 
-// --------------------------------------------------
-// ESM dirname fix
-// --------------------------------------------------
+/* =========================
+   Route Imports
+========================= */
+import adminMediaRoutes from './routes/adminMedia.js';
+import publicMediaRoutes from './routes/publicMedia.js';
+import authRoutes from './routes/auth.js';
+
+/* =========================
+   Config
+========================= */
+dotenv.config();
+
+const app = express();
+
+/* =========================
+   __dirname fix for ESM
+========================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --------------------------------------------------
-// Router
-// --------------------------------------------------
-const router = express.Router();
+/* =========================
+   Middlewares
+========================= */
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+/* =========================
+   Static Files
+========================= */
+// uploaded videos/images
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// frontend static
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+/* =========================
+   API Routes
+========================= */
+
+// auth
+app.use('/api/auth', authRoutes);
+
+// admin upload / delete / list
 app.use('/api/admin/media', adminMediaRoutes);
-// --------------------------------------------------
-// Upload directory
-// --------------------------------------------------
-const uploadDir = path.join(__dirname, '../../uploads/videos');
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// public gallery fetch
+app.use('/api/media', publicMediaRoutes);
 
-// --------------------------------------------------
-// Multer DISK storage (Render-safe)
-// --------------------------------------------------
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + ext);
-  }
+/* =========================
+   Frontend Routes
+========================= */
+
+// public site
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 1024 * 1024 * 1024 // 1 GB
-  }
+// admin login
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/admin.html'));
 });
 
-// --------------------------------------------------
-// Upload route
-// --------------------------------------------------
-router.post('/upload', upload.single('file'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded'
-      });
-    }
-
-    // IMPORTANT:
-    // No processing here
-    // No fs.readFile
-    // No ffmpeg
-
-    return res.status(200).json({
-      success: true,
-      filename: req.file.filename,
-      size: req.file.size
-    });
-  } catch (err) {
-    console.error('Upload error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Upload failed'
-    });
-  }
+// admin dashboard
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'));
 });
 
-// --------------------------------------------------
-// EXPORT (THIS WAS THE MISSING PART)
-// --------------------------------------------------
-export default router;
+/* =========================
+   MongoDB Connection
+========================= */
+mongoose
+  .connect(process.env.MONGO_URI, {
+    dbName: 'adultMediaGallery'
+  })
+  .then(() => {
+    console.log('✅ MongoDB connected');
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB error:', err);
+  });
+
+/* =========================
+   Server Start
+========================= */
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
