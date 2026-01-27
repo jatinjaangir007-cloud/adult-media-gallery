@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   
+
   <script>
     if (localStorage.getItem('isAdmin') !== 'true') {
       window.location.href = '/admin';
@@ -17,17 +17,11 @@
       color: #fff;
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
     }
 
     .container {
       max-width: 500px;
       margin: 40px auto;
-      padding: 20px;
-    }
-
-    h2 {
-      margin-bottom: 15px;
     }
 
     input, button {
@@ -45,17 +39,10 @@
       cursor: pointer;
     }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
     .progress-container {
-      width: 100%;
       background: #222;
       border-radius: 4px;
       overflow: hidden;
-      margin-top: 10px;
     }
 
     #progressBar {
@@ -63,41 +50,39 @@
       width: 0%;
       background: #e50914;
     }
-
-    #progressText, #statusText {
-      font-size: 14px;
-      margin-top: 5px;
-    }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h2>Admin Dashboard</h2>
+<div class="container">
+  <h2>Admin Dashboard</h2>
 
-    <input type="text" id="titleInput" placeholder="Title" />
-    <input type="text" id="tagsInput" placeholder="Tags (comma separated)" />
-    <input type="file" id="fileInput" />
+  <!-- ✅ FORM EXISTS -->
+  <form id="uploadForm">
+    <input type="text" id="title" placeholder="Title" required />
+    <input type="text" id="tags" placeholder="Tags (comma separated)" />
+    <input type="file" id="file" required />
 
-    <button id="uploadBtn">Upload</button>
+    <button type="submit">Upload</button>
+  </form>
 
-    <div class="progress-container">
-      <div id="progressBar"></div>
-    </div>
-
-    <div id="progressText"></div>
-    <div id="statusText"></div>
+  <div class="progress-container">
+    <div id="progressBar"></div>
   </div>
 
-  <button onclick="logout()">Logout</button>
+  <div id="progressText"></div>
+  <div id="statusText"></div>
+</div>
 
-  <script>
+<button onclick="logout()">Logout</button>
+
+<script>
   function logout() {
     localStorage.removeItem('isAdmin');
     window.location.href = '/admin';
   }
-  </script>
+</script>
 
-  <script src="/js/admin-dashboard.js"></script>
+<script src="/js/admin-dashboard.js"></script>
 </body>
 </html>

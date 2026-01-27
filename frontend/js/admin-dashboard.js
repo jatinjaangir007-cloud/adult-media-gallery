@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const fileInput = document.getElementById('file');
@@ -28,13 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const xhr = new XMLHttpRequest();
 
-    xhr.open('POST', '/api/admin/media/upload', true);
+    // ✅ CORRECT ENDPOINT
+    xhr.open('POST', '/api/admin/media/upload');
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
         const percent = Math.round((e.loaded / e.total) * 100);
         progressBar.style.width = percent + '%';
-        progressText.innerText = `${(e.loaded / 1024 / 1024).toFixed(2)} MB / ${(e.total / 1024 / 1024).toFixed(2)} MB`;
+        progressText.innerText =
+          `${(e.loaded / 1024 / 1024).toFixed(2)} MB / ${(e.total / 1024 / 1024).toFixed(2)} MB`;
       }
     };
 
@@ -42,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (xhr.status === 200) {
         statusText.innerText = 'Upload completed ✅';
         statusText.style.color = 'lime';
+        form.reset();
+        progressBar.style.width = '0%';
       } else {
         statusText.innerText = 'Upload failed ❌';
         statusText.style.color = 'red';

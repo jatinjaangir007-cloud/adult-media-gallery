@@ -1,40 +1,33 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import cors from 'cors';
-import mongoose from 'mongoose';
 
-import adminAuthRoutes from './routes/adminAuth.js';
 import adminMediaRoutes from './routes/adminMedia.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-/* ---------------- MongoDB ---------------- */
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB error:', err.message));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-/* ---------------- middleware ---------------- */
-app.use(cors());
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ---------------- API routes ---------------- */
-app.use('/api/admin', adminAuthRoutes);
+// Static files
+app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB error', err));
+
+// Routes
 app.use('/api/admin/media', adminMediaRoutes);
 
-/* ---------------- static frontend ---------------- */
-app.use(express.static(path.join(__dirname, '../frontend')));
-
-/* ---------------- admin pages ---------------- */
+// Admin pages
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin.html'));
 });
@@ -43,12 +36,7 @@ app.get('/admin/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'));
 });
 
-/* ---------------- fallback ---------------- */
-app.use((req, res) => {
-  res.status(404).send('Not Found');
-});
-
-/* ---------------- start ---------------- */
+// Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
