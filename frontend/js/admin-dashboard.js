@@ -1,84 +1,53 @@
-const uploadBtn = document.getElementById('uploadBtn');
-const fileInput = document.getElementById('fileInput');
-const titleInput = document.getElementById('titleInput');
-const tagsInput = document.getElementById('tagsInput');
-
+const uploadForm = document.getElementById('uploadForm');
 const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 const statusText = document.getElementById('statusText');
 
-let xhr = null;
-let uploading = false;
+uploadForm.addEventListener('submit', (e) => {
+  e.preventDefault();
 
-uploadBtn.addEventListener('click', () => {
-  if (uploading) return;
+  const title = document.getElementById('title').value;
+  const tags = document.getElementById('tags').value;
+  const fileInput = document.getElementById('file');
 
-  const file = fileInput.files[0];
-  if (!file) {
-    alert('Select a file');
+  if (!fileInput.files.length) {
+    alert('Please select a file');
     return;
   }
 
-  uploadVideo(file);
-});
+  const file = fileInput.files[0];
+  const formData = new FormData();
 
-function uploadVideo(file) {
-  uploading = true;
-  uploadBtn.disabled = true;
-  statusText.textContent = 'Uploading...';
+  formData.append('file', file);
+  formData.append('title', title);
+  formData.append('tags', tags);
 
-  xhr = new XMLHttpRequest();
-  xhr.open('POST', '/upload', true);
+  const xhr = new XMLHttpRequest();
 
-  // 🔴 VERY IMPORTANT FOR LARGE FILES
-  xhr.timeout = 0;
+  // ✅ FIXED URL — THIS IS THE CORE BUG
+  xhr.open('POST', '/api/admin/media/upload', true);
 
-  // Upload progress
   xhr.upload.onprogress = (e) => {
     if (e.lengthComputable) {
-      const percent = Math.round((e.loaded / e.total) * 100);
+      const percent = ((e.loaded / e.total) * 100).toFixed(2);
       progressBar.style.width = percent + '%';
-
-      progressText.textContent =
-        `${(e.loaded / 1024 / 1024).toFixed(2)} MB / ${(e.total / 1024 / 1024).toFixed(2)} MB`;
+      progressText.innerText = `${(e.loaded / 1024 / 1024).toFixed(2)} MB / ${(e.total / 1024 / 1024).toFixed(2)} MB`;
     }
   };
 
-  // ✅ SUCCESS
   xhr.onload = () => {
     if (xhr.status === 200) {
-      statusText.textContent = 'Upload completed ✅';
-      resetForm();
+      statusText.innerHTML = 'Upload completed ✅';
+      progressBar.style.width = '100%';
     } else {
-      statusText.textContent = 'Upload failed ❌';
-      uploadBtn.disabled = false;
+      statusText.innerHTML = 'Upload failed ❌';
+      console.error(xhr.responseText);
     }
   };
 
-  // ❌ ERROR
   xhr.onerror = () => {
-    statusText.textContent = 'Upload error ❌';
-    uploadBtn.disabled = false;
+    statusText.innerHTML = 'Upload failed ❌';
   };
-
-  // ALWAYS END STATE
-  xhr.onloadend = () => {
-    uploading = false;
-  };
-
-  const formData = new FormData();
-  formData.append('video', file);
-  formData.append('title', titleInput.value);
-  formData.append('tags', tagsInput.value);
 
   xhr.send(formData);
-}
-
-function resetForm() {
-  uploadBtn.disabled = false;
-  fileInput.value = '';
-  titleInput.value = '';
-  tagsInput.value = '';
-  progressBar.style.width = '0%';
-  progressText.textContent = '';
-}
+});
