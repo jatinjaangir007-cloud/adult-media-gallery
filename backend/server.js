@@ -11,23 +11,28 @@ const PORT = process.env.PORT || 10000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
+// ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files
+// ================= STATIC FILES =================
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// MongoDB
+// ================= MONGODB =================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB error', err));
 
-// Routes
+// ================= ROUTES =================
+
+// Admin upload routes
 app.use('/api/admin/media', adminMediaRoutes);
 
-// Admin pages
+// ✅ PUBLIC MEDIA API (THIS WAS MISSING)
+app.use('/api/public/media', adminMediaRoutes);
+
+// ================= ADMIN PAGES =================
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin.html'));
 });
@@ -36,7 +41,7 @@ app.get('/admin/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'));
 });
 
-// Start server
+// ================= START SERVER =================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
