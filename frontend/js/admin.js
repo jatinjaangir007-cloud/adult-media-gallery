@@ -1,25 +1,35 @@
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+  const loginForm = document.getElementById('loginForm');
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
-    });
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-    if (!res.ok) {
-      alert("Invalid credentials");
-      return;
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Login failed');
+        return;
+      }
+
+      // ✅ ONLY set this on SUCCESS
+      localStorage.setItem('isAdmin', 'true');
+
+      // ✅ redirect ONCE
+      window.location.href = '/dashboard';
+    } catch (err) {
+      console.error('Login error:', err);
+      alert('Server error');
     }
-
-    // ✅ Redirect to REAL route
-    window.location.href = "/admin/dashboard";
-
-  } catch (err) {
-    alert("Server error");
-  }
+  });
 });
+

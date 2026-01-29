@@ -6,9 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script>
-    if (localStorage.getItem('isAdmin') !== 'true') {
-      window.location.href = '/admin';
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('isAdmin') !== 'true') {
+        window.location.replace('/admin');
+      }
+    });
   </script>
 
   <style>

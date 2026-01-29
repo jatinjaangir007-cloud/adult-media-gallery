@@ -32,8 +32,9 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/admin.html"));
 });
 
-app.get("/admin/dashboard", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin-dashboard.html"));
+app.get('/dashboard', (req, res) => {
+  // frontend JS handles auth via localStorage
+  res.sendFile(path.join(__dirname, '../frontend/admin-dashboard.html'));
 });
 
 // ---------- MongoDB ----------
