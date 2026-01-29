@@ -1,4 +1,4 @@
-document.getElementById("loginForm").addEventListener("submit", async e => {
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const username = document.getElementById("username").value;
@@ -11,12 +11,16 @@ document.getElementById("loginForm").addEventListener("submit", async e => {
       body: JSON.stringify({ username, password })
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      alert("Login failed");
+      alert(data.message || "Login failed");
       return;
     }
 
+    // ✅ SUCCESS → redirect
     window.location.href = "/admin/dashboard";
+
   } catch (err) {
     alert("Server error");
   }
