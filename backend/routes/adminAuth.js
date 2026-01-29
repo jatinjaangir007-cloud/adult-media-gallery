@@ -1,25 +1,18 @@
-import express from 'express';
+import express from "express";
 
 const router = express.Router();
 
-/* LOGIN */
-router.post('/login', (req, res) => {
+const ADMIN_USER = process.env.ADMIN_USER || "admin";
+const ADMIN_PASS = process.env.ADMIN_PASS || "admin";
+
+router.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  if (username === 'admin' && password === 'admin') {
+  if (username === ADMIN_USER && password === ADMIN_PASS) {
     return res.json({ success: true });
   }
 
-  return res.status(401).json({
-    success: false,
-    message: 'Invalid credentials'
-  });
-});
-
-/* SIMPLE AUTH CHECK */
-router.get('/check', (req, res) => {
-  // frontend decides using localStorage
-  res.json({ ok: true });
+  return res.status(401).json({ message: "Invalid credentials" });
 });
 
 export default router;
