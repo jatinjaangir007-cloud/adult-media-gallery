@@ -11,14 +11,12 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       body: JSON.stringify({ username, password })
     });
 
-    const data = await res.json();
-
     if (!res.ok) {
-      alert(data.message || "Login failed");
+      alert("Invalid credentials");
       return;
     }
 
-    // ✅ SUCCESS → redirect
+    // ✅ Redirect to REAL route
     window.location.href = "/admin/dashboard";
 
   } catch (err) {
