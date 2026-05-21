@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VelvetHub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: "Segoe UI", Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ---- TOP BAR ---- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 24px;
+      background: #111;
+      border-bottom: 1px solid #1e1e1e;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e1e1e;
+      border: 1px solid #2e2e2e;
+      color: #ccc;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .back-btn:hover { background: #2a2a2a; color: #fff; }
+    .site-name { font-size: 18px; font-weight: bold; }
+    .site-name span { color: #e50914; }
+
+    /* ---- MAIN WRAPPER ---- */
+    .view-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* ---- VIDEO PLAYER ---- */
+    .video-container {
+      width: 100%;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    }
+    .video-container video {
+      width: 100%;
+      max-height: 72vh;
+      display: block;
+      background: #000;
+    }
+
+    /* ---- IMAGE VIEWER ---- */
+    .image-container {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+      cursor: zoom-in;
+      background: #000;
+      text-align: center;
+    }
+    .image-container img {
+      width: 100%;
+      max-height: 78vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Fullscreen overlay for image */
+    .fs-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.96);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    .fs-overlay.open { display: flex; }
+    .fs-overlay img {
+      max-width: 95vw;
+      max-height: 95vh;
+      object-fit: contain;
+      border-radius: 4px;
+      user-select: none;
+    }
+    .fs-close {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+    }
+    .fs-close:hover { background: #e50914; }
+
+    /* ---- META INFO ---- */
+    .meta {
+      margin-top: 20px;
+      padding: 0 4px;
+    }
+    .meta h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tag {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #999;
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .tag:hover { background: #e50914; color: #fff; border-color: #e50914; }
+
+    /* ---- LOADING SKELETON ---- */
+    .skeleton {
+      background: linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 12px;
+      height: 420px;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .error-box {
+      text-align: center;
+      padding: 80px 20px;
+      color: #555;
+    }
+    .error-box h2 { font-size: 22px; margin-bottom: 10px; color: #e50914; }
+    .error-box a { color: #e50914; }
+
+    @media (max-width: 600px) {
+      .meta h1 { font-size: 17px; }
+      .view-wrap { padding: 16px 12px 40px; }
+      .topbar { padding: 12px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="back-btn" href="/">&#8592; Back</a>
+  <span class="site-name">Velvet<span>Hub</span></span>
+</nav>
+
+<div class="view-wrap">
+  <div id="content"><div class="skeleton"></div></div>
+</div>
+
+<!-- Fullscreen image overlay -->
+<div class="fs-overlay" id="fsOverlay">
+  <button class="fs-close" id="fsClose">&#10005;</button>
+  <img id="fsImg" src="" alt="">
+</div>
+
+<script>
+const params  = new URLSearchParams(window.location.search);
+const mediaId = params.get('id');
+const content = document.getElementById('content');
+
+async function load() {
+  if (!mediaId) { showError('No media ID provided.'); return; }
+  try {
+    const res = await fetch(`/api/public/media/${mediaId}`);
+    if (!res.ok) throw new Error('Not found');
+    const media = await res.json();
+    document.title = `${media.title} | VelvetHub`;
+    render(media);
+  } catch (e) {
+    showError('Media not found or failed to load.');
+  }
+}
+
+function render(media) {
+  const tagsHtml = (media.tags && media.tags.length)
+    ? media.tags.map(t => `<a class="tag" href="/?search=${encodeURIComponent(t)}">#${t}</a>`).join('')
+    : '';
+
+  let mediaHtml = '';
+
+  if (media.fileType === 'video') {
+    mediaHtml = `
+      <div class="video-container">
+        <video
+          src="${media.fileUrl}"
+          controls
+          autoplay
+          controlsList="nodownload"
+          preload="auto"
+          playsinline
+        ></video>
+      </div>`;
+  } else {
+    mediaHtml = `
+      <div class="image-container" id="imgWrap">
+        <img src="${media.fileUrl}" alt="${media.title}" id="mainImg" loading="eager">
+      </div>`;
+  }
+
+  content.innerHTML = `
+    ${mediaHtml}
+    <div class="meta">
+      <h1>${media.title}</h1>
+      ${tagsHtml ? `<div class="tag-list">${tagsHtml}</div>` : ''}
+    </div>
+  `;
+
+  if (media.fileType === 'image') {
+    const wrap    = document.getElementById('imgWrap');
+    const fsOverlay = document.getElementById('fsOverlay');
+    const fsImg   = document.getElementById('fsImg');
+    const fsClose = document.getElementById('fsClose');
+
+    wrap.addEventListener('click', () => {
+      fsImg.src = media.fileUrl;
+      fsOverlay.classList.add('open');
+    });
+    fsClose.addEventListener('click', () => fsOverlay.classList.remove('open'));
+    fsOverlay.addEventListener('click', e => {
+      if (e.target === fsOverlay) fsOverlay.classList.remove('open');
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') fsOverlay.classList.remove('open');
+    });
+  }
+}
+
+function showError(msg) {
+  content.innerHTML = `
+    <div class="error-box">
+      <h2>Oops!</h2>
+      <p>${msg}</p><br>
+      <a href="/">Go back to gallery</a>
+    </div>`;
+}
+
+load();
+</script>
+</body>
+</html>
