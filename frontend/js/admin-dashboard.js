@@ -31,6 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ CORRECT ENDPOINT
     xhr.open('POST', '/api/admin/media/upload');
 
+    // ✅ Send JWT auth token
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
         const percent = Math.round((e.loaded / e.total) * 100);

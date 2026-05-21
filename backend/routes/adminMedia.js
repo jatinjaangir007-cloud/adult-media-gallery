@@ -2,6 +2,8 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import auth from '../middleware/auth.js';
+import Media from '../models/Media.js';
 
 const router = express.Router();
 
@@ -12,6 +14,9 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+const MAX_SIZE_MB = 500;
+
 const storage = multer.diskStorage({
   destination: uploadDir,
   filename: (req, file, cb) => {
@@ -19,14 +24,20 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_SIZE_MB * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only images and videos are allowed.'));
+    }
+  }
+});
 
-// ================= TEMP IN-MEMORY STORE =================
-// (Replace with Mongo schema later if needed)
-const mediaStore = [];
-
-// ================= ADMIN UPLOAD =================
-router.post('/upload', upload.single('file'), (req, res) => {
+// ================= ADMIN UPLOAD (protected) =================
+router.post('/upload', auth, upload.single('file'), async (req, res) => {
   try {
     const { title, tags } = req.body;
 
@@ -34,39 +45,20 @@ router.post('/upload', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const fileType = req.file.mimetype.startsWith('video')
-      ? 'video'
-      : 'image';
+    const fileType = req.file.mimetype.startsWith('video') ? 'video' : 'image';
 
-    const media = {
+    const media = await Media.create({
       title,
-      tags: tags?.split(',').map(t => t.trim()),
+      tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       fileType,
-      fileUrl: `/uploads/${req.file.filename}`,
-      createdAt: new Date()
-    };
-
-    mediaStore.unshift(media);
+      fileUrl: `/uploads/${req.file.filename}`
+    });
 
     res.json({ success: true, media });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Upload failed' });
+    res.status(500).json({ error: err.message || 'Upload failed' });
   }
-});
-
-// ================= PUBLIC MEDIA LIST =================
-router.get('/', (req, res) => {
-  res.json({ media: mediaStore });
-});
-
-// ================= PUBLIC SEARCH =================
-router.get('/search', (req, res) => {
-  const q = req.query.q?.toLowerCase() || '';
-  const filtered = mediaStore.filter(m =>
-    m.title.toLowerCase().includes(q)
-  );
-  res.json({ media: filtered });
 });
 
 export default router;

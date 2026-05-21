@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // ✅ ONLY set this on SUCCESS
       localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('adminToken', data.token);
 
       // ✅ redirect ONCE
       window.location.href = '/dashboard';

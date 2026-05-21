@@ -1,4 +1,5 @@
 import express from "express";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -9,7 +10,12 @@ router.post("/login", (req, res) => {
   const { username, password } = req.body;
 
   if (username === ADMIN_USER && password === ADMIN_PASS) {
-    return res.json({ success: true });
+    const token = jwt.sign(
+      { role: "admin" },
+      process.env.JWT_SECRET || "changeme",
+      { expiresIn: "8h" }
+    );
+    return res.json({ success: true, token });
   }
 
   return res.status(401).json({ message: "Invalid credentials" });

@@ -81,6 +81,7 @@
 <script>
   function logout() {
     localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminToken');
     window.location.href = '/admin';
   }
 </script>
