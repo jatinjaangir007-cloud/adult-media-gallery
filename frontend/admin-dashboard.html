@@ -4,88 +4,392 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('isAdmin') !== 'true') {
-        window.location.replace('/admin');
-      }
-    });
+    if (localStorage.getItem('isAdmin') !== 'true') window.location.replace('/admin');
   </script>
-
   <style>
-    body {
-      background: #0b0b0b;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      margin: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0b0b0b; color: #fff; font-family: Arial, sans-serif; min-height: 100vh; }
 
-    .container {
-      max-width: 500px;
-      margin: 40px auto;
+    header {
+      background: #111;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #e50914;
     }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      border: none;
-    }
-
-    button {
+    header h1 { font-size: 20px; }
+    header span { color: #e50914; }
+    .logout-btn {
       background: #e50914;
       color: #fff;
-      font-size: 16px;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .main { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+
+    /* Upload Card */
+    .upload-card {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 36px;
+    }
+    .upload-card h2 { margin-bottom: 16px; font-size: 16px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+    .upload-card input[type=text] {
+      width: 100%;
+      background: #222;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .file-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .file-row input[type=file] { flex: 1; color: #aaa; font-size: 14px; }
+    .upload-btn {
+      background: #e50914;
+      color: #fff;
+      border: none;
+      padding: 11px 28px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .progress-bar-bg { background: #2a2a2a; border-radius: 4px; height: 8px; margin-bottom: 8px; overflow: hidden; display: none; }
+    .progress-bar-fill { height: 100%; background: #e50914; width: 0%; transition: width 0.2s; }
+    .status-text { font-size: 13px; min-height: 18px; }
+
+    /* Media Grid */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-header h2 { font-size: 16px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+    .media-count { font-size: 13px; color: #555; }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .media-card {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .media-thumb {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+      background: #1a1a1a;
+    }
+    .media-thumb.video-thumb { object-fit: contain; }
+    .media-info { padding: 12px; }
+    .media-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-tags { font-size: 11px; color: #777; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-actions { display: flex; gap: 8px; }
+    .edit-btn {
+      flex: 1;
+      background: #222;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .edit-btn:hover { background: #333; }
+    .delete-btn {
+      flex: 1;
+      background: #300;
+      border: 1px solid #600;
+      color: #ff4444;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .delete-btn:hover { background: #400; }
+
+    /* Edit modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 28px;
+      width: 420px;
+      max-width: 95vw;
+    }
+    .modal h3 { margin-bottom: 16px; }
+    .modal input {
+      width: 100%;
+      background: #222;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-save {
+      flex: 1;
+      background: #e50914;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .modal-cancel {
+      flex: 1;
+      background: #222;
+      color: #aaa;
+      border: 1px solid #444;
+      padding: 10px;
+      border-radius: 4px;
       cursor: pointer;
     }
 
-    .progress-container {
-      background: #222;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    #progressBar {
-      height: 10px;
-      width: 0%;
-      background: #e50914;
-    }
+    .empty-state { color: #444; text-align: center; padding: 60px 0; font-size: 15px; }
+    .loading { color: #555; text-align: center; padding: 40px 0; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Admin Dashboard</h2>
+<header>
+  <h1>Velvet<span>Hub</span> Admin</h1>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</header>
 
-  <!-- ✅ FORM EXISTS -->
-  <form id="uploadForm">
-    <input type="text" id="title" placeholder="Title" required />
+<div class="main">
+
+  <!-- Upload Section -->
+  <div class="upload-card">
+    <h2>Upload New Media</h2>
+    <input type="text" id="title" placeholder="Title" />
     <input type="text" id="tags" placeholder="Tags (comma separated)" />
-    <input type="file" id="file" required />
-
-    <button type="submit">Upload</button>
-  </form>
-
-  <div class="progress-container">
-    <div id="progressBar"></div>
+    <div class="file-row">
+      <input type="file" id="file" accept="image/*,video/*" />
+      <button class="upload-btn" id="uploadBtn" onclick="startUpload()">Upload</button>
+    </div>
+    <div class="progress-bar-bg" id="progressBg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <div class="status-text" id="statusText"></div>
   </div>
 
-  <div id="progressText"></div>
-  <div id="statusText"></div>
+  <!-- Media List -->
+  <div class="section-header">
+    <h2>Uploaded Media</h2>
+    <span class="media-count" id="mediaCount"></span>
+  </div>
+  <div id="mediaGrid" class="media-grid">
+    <div class="loading">Loading...</div>
+  </div>
+
 </div>
 
-<button onclick="logout()">Logout</button>
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Media</h3>
+    <input type="text" id="editTitle" placeholder="Title" />
+    <input type="text" id="editTags" placeholder="Tags (comma separated)" />
+    <input type="hidden" id="editId" />
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="modal-save" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
 
 <script>
-  function logout() {
-    localStorage.removeItem('isAdmin');
-    localStorage.removeItem('adminToken');
-    window.location.href = '/admin';
-  }
-</script>
+const token = () => localStorage.getItem('adminToken');
+const authHeaders = () => ({ 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' });
 
-<script src="/js/admin-dashboard.js"></script>
+function logout() {
+  localStorage.removeItem('isAdmin');
+  localStorage.removeItem('adminToken');
+  window.location.href = '/admin';
+}
+
+// =========== LOAD MEDIA ===========
+async function loadMedia() {
+  const grid = document.getElementById('mediaGrid');
+  try {
+    const res = await fetch('/api/admin/media', { headers: { 'Authorization': `Bearer ${token()}` } });
+    const data = await res.json();
+    const list = data.media || [];
+    document.getElementById('mediaCount').textContent = `${list.length} item${list.length !== 1 ? 's' : ''}`;
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No media uploaded yet.</div>';
+      return;
+    }
+    grid.innerHTML = list.map(m => `
+      <div class="media-card" id="card-${m._id}">
+        ${ m.fileType === 'video'
+          ? `<video class="media-thumb video-thumb" src="${m.fileUrl}" preload="metadata"></video>`
+          : `<img class="media-thumb" src="${m.fileUrl}" alt="${m.title}" loading="lazy">`
+        }
+        <div class="media-info">
+          <div class="media-title" title="${m.title}">${m.title}</div>
+          <div class="media-tags">${m.tags && m.tags.length ? m.tags.join(', ') : 'No tags'}</div>
+          <div class="media-actions">
+            <button class="edit-btn" onclick="openEdit('${m._id}', '${escHtml(m.title)}', '${escHtml((m.tags||[]).join(', '))}')">✏️ Edit</button>
+            <button class="delete-btn" onclick="deleteMedia('${m._id}')">🗑️ Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    grid.innerHTML = '<div class="empty-state">Failed to load media.</div>';
+  }
+}
+
+function escHtml(str) {
+  return (str || '').replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+}
+
+// =========== UPLOAD ===========
+function startUpload() {
+  const title = document.getElementById('title').value.trim();
+  const tags  = document.getElementById('tags').value.trim();
+  const file  = document.getElementById('file').files[0];
+  const btn   = document.getElementById('uploadBtn');
+  const bar   = document.getElementById('progressBar');
+  const bg    = document.getElementById('progressBg');
+  const status = document.getElementById('statusText');
+
+  if (!title) { status.style.color='#f55'; status.textContent='Please enter a title.'; return; }
+  if (!file)  { status.style.color='#f55'; status.textContent='Please select a file.'; return; }
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('title', title);
+  fd.append('tags', tags);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/admin/media/upload');
+  xhr.setRequestHeader('Authorization', `Bearer ${token()}`);
+
+  btn.disabled = true;
+  bg.style.display = 'block';
+  status.textContent = 'Uploading...';
+  status.style.color = '#aaa';
+
+  xhr.upload.onprogress = e => {
+    if (e.lengthComputable) {
+      const pct = Math.round(e.loaded / e.total * 100);
+      bar.style.width = pct + '%';
+      status.textContent = `${(e.loaded/1024/1024).toFixed(2)} MB / ${(e.total/1024/1024).toFixed(2)} MB`;
+    }
+  };
+
+  xhr.onload = () => {
+    btn.disabled = false;
+    bar.style.width = '0%';
+    bg.style.display = 'none';
+    if (xhr.status === 200) {
+      status.style.color = 'lime';
+      status.textContent = 'Upload completed ✅';
+      document.getElementById('title').value = '';
+      document.getElementById('tags').value = '';
+      document.getElementById('file').value = '';
+      loadMedia();
+    } else {
+      status.style.color = '#f55';
+      status.textContent = 'Upload failed ❌ — ' + (JSON.parse(xhr.responseText)?.error || 'Unknown error');
+    }
+  };
+
+  xhr.onerror = () => {
+    btn.disabled = false;
+    status.style.color = '#f55';
+    status.textContent = 'Network error ❌';
+  };
+
+  xhr.send(fd);
+}
+
+// =========== DELETE ===========
+async function deleteMedia(id) {
+  if (!confirm('Delete this item? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`/api/admin/media/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token()}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('card-' + id)?.remove();
+      loadMedia(); // refresh count
+    } else alert('Delete failed: ' + data.error);
+  } catch (e) { alert('Delete failed'); }
+}
+
+// =========== EDIT ===========
+function openEdit(id, title, tags) {
+  document.getElementById('editId').value    = id;
+  document.getElementById('editTitle').value = title.replace(/&#39;/g, "'");
+  document.getElementById('editTags').value  = tags.replace(/&#39;/g, "'");
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('editModal').classList.remove('open');
+}
+
+async function saveEdit() {
+  const id    = document.getElementById('editId').value;
+  const title = document.getElementById('editTitle').value.trim();
+  const tags  = document.getElementById('editTags').value.trim();
+  if (!title) { alert('Title is required'); return; }
+  try {
+    const res = await fetch(`/api/admin/media/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ title, tags })
+    });
+    const data = await res.json();
+    if (data.success) { closeEdit(); loadMedia(); }
+    else alert('Edit failed: ' + data.error);
+  } catch (e) { alert('Edit failed'); }
+}
+
+// close modal on overlay click
+document.getElementById('editModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEdit();
+});
+
+loadMedia();
+</script>
 </body>
 </html>
