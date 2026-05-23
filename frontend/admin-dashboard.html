@@ -501,51 +501,64 @@ async function startUpload(){
 
   const fileType = file.type.startsWith('video') ? 'video' : 'image';
   btn.disabled = true; bg.style.display = 'block';
-  status.style.color = 'var(--muted)'; status.textContent = 'Getting upload signature…';
+  status.style.color = 'var(--muted)'; status.textContent = 'Preparing upload…';
 
   try {
-    // STEP 1 — Get signed params from our server (tiny request, no file bytes)
-    const signRes = await fetch('/api/admin/media/sign', {
-      method: 'POST', headers: H(),
-      body: JSON.stringify({ resource_type: fileType })
+    // STEP 1 — Get Cloudinary config from server
+    const cfgRes = await fetch('/api/admin/media/upload-config', {
+      headers: { 'Authorization': 'Bearer ' + token() }
     });
-    if (!signRes.ok) throw new Error('Could not get upload signature (HTTP ' + signRes.status + ')');
-    const sig = await signRes.json();
+    if (!cfgRes.ok) {
+      const e = await cfgRes.json().catch(() => ({}));
+      throw new Error(e.error || 'Could not get upload config (HTTP ' + cfgRes.status + '). Check CLOUDINARY_UPLOAD_PRESET env var.');
+    }
+    const { cloudName, uploadPreset } = await cfgRes.json();
 
-    // STEP 2 — Upload DIRECTLY from browser to Cloudinary (server never sees the file)
+    // STEP 2 — Upload directly from browser to Cloudinary using unsigned preset
+    // File bytes go straight to Cloudinary, server RAM never touched
     status.textContent = 'Uploading to Cloudinary…';
     const fd = new FormData();
-    fd.append('file',      file);
-    fd.append('api_key',   sig.api_key);
-    fd.append('timestamp', sig.timestamp);
-    fd.append('signature', sig.signature);
-    fd.append('folder',    sig.folder);
+    fd.append('file',          file);
+    fd.append('upload_preset', uploadPreset);
+    fd.append('folder',        'velvethub');
 
-    const cloudUrl = 'https://api.cloudinary.com/v1_1/' + sig.cloud_name + '/' + fileType + '/upload';
+    const cloudUrl = 'https://api.cloudinary.com/v1_1/' + cloudName + '/' + fileType + '/upload';
 
     const result = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', cloudUrl);
+
       xhr.upload.onprogress = e => {
         if (e.lengthComputable) {
           const pct = Math.round(e.loaded / e.total * 100);
           fill.style.width = pct + '%';
-          status.textContent = 'Uploading ' + (e.loaded/1048576).toFixed(1) + ' MB / ' + (e.total/1048576).toFixed(1) + ' MB (' + pct + '%)';
+          const mb  = (e.loaded / 1048576).toFixed(1);
+          const tot = (e.total  / 1048576).toFixed(1);
+          status.textContent = 'Uploading ' + mb + ' MB / ' + tot + ' MB (' + pct + '%)';
         }
       };
+
       xhr.onload = () => {
-        if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-        else reject(new Error('Cloudinary error ' + xhr.status + ': ' + xhr.responseText.slice(0,200)));
+        if (xhr.status === 200) {
+          resolve(JSON.parse(xhr.responseText));
+        } else {
+          let msg = 'Cloudinary error ' + xhr.status;
+          try { msg += ': ' + JSON.parse(xhr.responseText).error.message; } catch(e){}
+          reject(new Error(msg));
+        }
       };
-      xhr.onerror = () => reject(new Error('Network error during upload'));
+
+      xhr.onerror = () => reject(new Error('Network error — check your internet connection'));
       xhr.send(fd);
     });
 
-    // STEP 3 — Save metadata to MongoDB (tiny JSON request, no timeout risk)
+    // STEP 3 — Save metadata to MongoDB (tiny JSON, no timeout risk)
     fill.style.width = '100%';
-    status.textContent = 'Saving to database…';
+    status.textContent = 'Saving…';
+
     const confirmRes  = await fetch('/api/admin/media/confirm', {
-      method: 'POST', headers: H(),
+      method: 'POST',
+      headers: H(),
       body: JSON.stringify({
         title, category, tags,
         fileUrl:      result.secure_url,
@@ -553,9 +566,10 @@ async function startUpload(){
         fileType
       })
     });
-    const confirmData = await confirmRes.json();
 
+    const confirmData = await confirmRes.json();
     btn.disabled = false; fill.style.width = '0%'; bg.style.display = 'none';
+
     if (confirmData.success) {
       status.style.color = '#4caf50';
       status.textContent = '✅ Upload complete!';
@@ -565,8 +579,9 @@ async function startUpload(){
       loadMedia();
     } else {
       status.style.color = 'var(--red)';
-      status.textContent = '⚠️ Uploaded but DB save failed: ' + confirmData.error;
+      status.textContent = '⚠️ Uploaded to Cloudinary but DB failed: ' + confirmData.error;
     }
+
   } catch(err) {
     btn.disabled = false; fill.style.width = '0%'; bg.style.display = 'none';
     status.style.color = 'var(--red)';

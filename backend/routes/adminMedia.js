@@ -1,54 +1,37 @@
 import express from 'express';
-import crypto from 'crypto';
 import { v2 as cloudinary } from 'cloudinary';
 import auth from '../middleware/auth.js';
 import Media from '../models/Media.js';
 
 const router = express.Router();
 
-// ═══════════════ CLOUDINARY CONFIG ═══════════════
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ═══════════════════════════════════════════════════════
-//  STEP 1 — Frontend requests a signed upload params
-//  Server signs params; browser uploads directly to Cloudinary
-//  File bytes NEVER touch this server → no RAM crash, no timeout
-// ═══════════════════════════════════════════════════════
-router.post('/sign', auth, (req, res) => {
-  try {
-    const { resource_type = 'auto' } = req.body;
+// ══════════════════════════════════════════════════
+//  GET UPLOAD CONFIG
+//  Returns only public info needed for unsigned upload.
+//  No secrets exposed.
+// ══════════════════════════════════════════════════
+router.get('/upload-config', auth, (req, res) => {
+  const cloudName    = process.env.CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
 
-    const timestamp  = Math.round(Date.now() / 1000);
-    const folder     = 'velvethub';
-    const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
-
-    const signature = crypto
-      .createHash('sha1')
-      .update(paramsToSign + process.env.CLOUDINARY_API_SECRET)
-      .digest('hex');
-
-    res.json({
-      signature,
-      timestamp,
-      folder,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      resource_type,
+  if (!cloudName || !uploadPreset) {
+    return res.status(500).json({
+      error: 'CLOUDINARY_CLOUD_NAME or CLOUDINARY_UPLOAD_PRESET not set in environment variables.'
     });
-  } catch (err) {
-    console.error('Sign error:', err);
-    res.status(500).json({ error: 'Failed to generate upload signature' });
   }
+
+  res.json({ cloudName, uploadPreset });
 });
 
-// ═══════════════════════════════════════════════════════
-//  STEP 2 — After Cloudinary upload succeeds, frontend
-//  calls this to save metadata to MongoDB
-// ═══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+//  CONFIRM — save metadata to MongoDB after upload
+// ══════════════════════════════════════════════════
 router.post('/confirm', auth, async (req, res) => {
   try {
     const { title, category, tags, fileUrl, cloudinaryId, fileType } = req.body;
@@ -73,7 +56,9 @@ router.post('/confirm', auth, async (req, res) => {
   }
 });
 
-// ═══════════════ LIST ALL ═══════════════
+// ══════════════════════════════════════════════════
+//  LIST ALL
+// ══════════════════════════════════════════════════
 router.get('/', auth, async (req, res) => {
   try {
     const media = await Media.find().sort({ createdAt: -1 });
@@ -83,7 +68,9 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// ═══════════════ EDIT ═══════════════
+// ══════════════════════════════════════════════════
+//  EDIT
+// ══════════════════════════════════════════════════
 router.put('/:id', auth, async (req, res) => {
   try {
     const { title, category, tags } = req.body;
@@ -103,7 +90,9 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// ═══════════════ DELETE ═══════════════
+// ══════════════════════════════════════════════════
+//  DELETE — removes from Cloudinary + MongoDB
+// ══════════════════════════════════════════════════
 router.delete('/:id', auth, async (req, res) => {
   try {
     const media = await Media.findById(req.params.id);
