@@ -1,71 +1,79 @@
 import express from 'express';
-import multer from 'multer';
-import { Readable } from 'stream';
+import crypto from 'crypto';
 import { v2 as cloudinary } from 'cloudinary';
 import auth from '../middleware/auth.js';
 import Media from '../models/Media.js';
 
 const router = express.Router();
 
-// ================= CLOUDINARY CONFIG =================
+// ═══════════════ CLOUDINARY CONFIG ═══════════════
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ================= MULTER (memory, no disk) =================
-const ALLOWED_TYPES = [
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-  'video/mp4', 'video/webm', 'video/quicktime'
-];
+// ═══════════════════════════════════════════════════════
+//  STEP 1 — Frontend requests a signed upload params
+//  Server signs params; browser uploads directly to Cloudinary
+//  File bytes NEVER touch this server → no RAM crash, no timeout
+// ═══════════════════════════════════════════════════════
+router.post('/sign', auth, (req, res) => {
+  try {
+    const { resource_type = 'auto' } = req.body;
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 500 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (ALLOWED_TYPES.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Invalid file type. Only images and videos allowed.'));
+    const timestamp  = Math.round(Date.now() / 1000);
+    const folder     = 'velvethub';
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+
+    const signature = crypto
+      .createHash('sha1')
+      .update(paramsToSign + process.env.CLOUDINARY_API_SECRET)
+      .digest('hex');
+
+    res.json({
+      signature,
+      timestamp,
+      folder,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      resource_type,
+    });
+  } catch (err) {
+    console.error('Sign error:', err);
+    res.status(500).json({ error: 'Failed to generate upload signature' });
   }
 });
 
-// ================= HELPER =================
-function streamUpload(buffer, resourceType) {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { resource_type: resourceType, folder: 'velvethub' },
-      (err, result) => err ? reject(err) : resolve(result)
-    );
-    Readable.from(buffer).pipe(stream);
-  });
-}
-
-// ================= UPLOAD (POST) =================
-router.post('/upload', auth, upload.single('file'), async (req, res) => {
+// ═══════════════════════════════════════════════════════
+//  STEP 2 — After Cloudinary upload succeeds, frontend
+//  calls this to save metadata to MongoDB
+// ═══════════════════════════════════════════════════════
+router.post('/confirm', auth, async (req, res) => {
   try {
-    const { title, tags } = req.body;
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const { title, category, tags, fileUrl, cloudinaryId, fileType } = req.body;
 
-    const fileType = req.file.mimetype.startsWith('video') ? 'video' : 'image';
-    const result = await streamUpload(req.file.buffer, fileType);
+    if (!title || !fileUrl || !cloudinaryId || !fileType) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     const media = await Media.create({
       title,
-      category: req.body.category || 'uncategorized',
+      category: category || 'uncategorized',
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       fileType,
-      fileUrl: result.secure_url,
-      cloudinaryId: result.public_id,
+      fileUrl,
+      cloudinaryId,
     });
 
     res.json({ success: true, media });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message || 'Upload failed' });
+    console.error('Confirm error:', err);
+    res.status(500).json({ error: err.message || 'Failed to save media' });
   }
 });
 
-// ================= LIST ALL (GET) =================
+// ═══════════════ LIST ALL ═══════════════
 router.get('/', auth, async (req, res) => {
   try {
     const media = await Media.find().sort({ createdAt: -1 });
@@ -75,13 +83,17 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// ================= EDIT (PUT) =================
+// ═══════════════ EDIT ═══════════════
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, tags } = req.body;
+    const { title, category, tags } = req.body;
     const media = await Media.findByIdAndUpdate(
       req.params.id,
-      { title, category: req.body.category || 'uncategorized', tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [] },
+      {
+        title,
+        category: category || 'uncategorized',
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      },
       { new: true }
     );
     if (!media) return res.status(404).json({ error: 'Not found' });
@@ -91,7 +103,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// ================= DELETE (DELETE) =================
+// ═══════════════ DELETE ═══════════════
 router.delete('/:id', auth, async (req, res) => {
   try {
     const media = await Media.findById(req.params.id);
@@ -99,14 +111,14 @@ router.delete('/:id', auth, async (req, res) => {
 
     if (media.cloudinaryId) {
       await cloudinary.uploader.destroy(media.cloudinaryId, {
-        resource_type: media.fileType === 'video' ? 'video' : 'image'
+        resource_type: media.fileType === 'video' ? 'video' : 'image',
       });
     }
 
     await Media.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Delete error:', err);
     res.status(500).json({ error: 'Delete failed' });
   }
 });

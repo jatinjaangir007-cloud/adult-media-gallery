@@ -486,46 +486,93 @@ async function loadMedia(){
 }
 
 /* Upload */
-function startUpload(){
-  const title=document.getElementById('up-title').value.trim();
-  const category=document.getElementById('up-category').value;
-  const tags=document.getElementById('up-tags').value.trim();
-  const file=document.getElementById('up-file').files[0];
-  const btn=document.getElementById('uploadBtn');
-  const fill=document.getElementById('progFill');
-  const bg=document.getElementById('progBg');
-  const status=document.getElementById('statusTxt');
+async function startUpload(){
+  const title    = document.getElementById('up-title').value.trim();
+  const category = document.getElementById('up-category').value;
+  const tags     = document.getElementById('up-tags').value.trim();
+  const file     = document.getElementById('up-file').files[0];
+  const btn      = document.getElementById('uploadBtn');
+  const fill     = document.getElementById('progFill');
+  const bg       = document.getElementById('progBg');
+  const status   = document.getElementById('statusTxt');
 
-  if(!title){status.style.color='var(--red)';status.textContent='Title is required.';return;}
-  if(!file){status.style.color='var(--red)';status.textContent='Please select a file.';return;}
+  if(!title){ status.style.color='var(--red)'; status.textContent='Title is required.'; return; }
+  if(!file){  status.style.color='var(--red)'; status.textContent='Please select a file.'; return; }
 
-  const fd=new FormData();
-  fd.append('file',file);fd.append('title',title);fd.append('category',category);fd.append('tags',tags);
+  const fileType = file.type.startsWith('video') ? 'video' : 'image';
+  btn.disabled = true; bg.style.display = 'block';
+  status.style.color = 'var(--muted)'; status.textContent = 'Getting upload signature…';
 
-  const xhr=new XMLHttpRequest();
-  xhr.open('POST','/api/admin/media/upload');
-  xhr.setRequestHeader('Authorization',`Bearer ${token()}`);
-  btn.disabled=true;bg.style.display='block';
-  status.style.color='var(--muted)';status.textContent='Uploading to Cloudinary…';
+  try {
+    // STEP 1 — Get signed params from our server (tiny request, no file bytes)
+    const signRes = await fetch('/api/admin/media/sign', {
+      method: 'POST', headers: H(),
+      body: JSON.stringify({ resource_type: fileType })
+    });
+    if (!signRes.ok) throw new Error('Could not get upload signature (HTTP ' + signRes.status + ')');
+    const sig = await signRes.json();
 
-  xhr.upload.onprogress=e=>{
-    if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);fill.style.width=p+'%';status.textContent=`${(e.loaded/1024/1024).toFixed(2)} MB / ${(e.total/1024/1024).toFixed(2)} MB`;}
-  };
-  xhr.onload=()=>{
-    btn.disabled=false;fill.style.width='0%';bg.style.display='none';
-    if(xhr.status===200){
-      status.style.color='#4caf50';status.textContent='✅ Upload complete!';
-      document.getElementById('up-title').value='';
-      document.getElementById('up-tags').value='';
-      document.getElementById('up-file').value='';
+    // STEP 2 — Upload DIRECTLY from browser to Cloudinary (server never sees the file)
+    status.textContent = 'Uploading to Cloudinary…';
+    const fd = new FormData();
+    fd.append('file',      file);
+    fd.append('api_key',   sig.api_key);
+    fd.append('timestamp', sig.timestamp);
+    fd.append('signature', sig.signature);
+    fd.append('folder',    sig.folder);
+
+    const cloudUrl = 'https://api.cloudinary.com/v1_1/' + sig.cloud_name + '/' + fileType + '/upload';
+
+    const result = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', cloudUrl);
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const pct = Math.round(e.loaded / e.total * 100);
+          fill.style.width = pct + '%';
+          status.textContent = 'Uploading ' + (e.loaded/1048576).toFixed(1) + ' MB / ' + (e.total/1048576).toFixed(1) + ' MB (' + pct + '%)';
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+        else reject(new Error('Cloudinary error ' + xhr.status + ': ' + xhr.responseText.slice(0,200)));
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(fd);
+    });
+
+    // STEP 3 — Save metadata to MongoDB (tiny JSON request, no timeout risk)
+    fill.style.width = '100%';
+    status.textContent = 'Saving to database…';
+    const confirmRes  = await fetch('/api/admin/media/confirm', {
+      method: 'POST', headers: H(),
+      body: JSON.stringify({
+        title, category, tags,
+        fileUrl:      result.secure_url,
+        cloudinaryId: result.public_id,
+        fileType
+      })
+    });
+    const confirmData = await confirmRes.json();
+
+    btn.disabled = false; fill.style.width = '0%'; bg.style.display = 'none';
+    if (confirmData.success) {
+      status.style.color = '#4caf50';
+      status.textContent = '✅ Upload complete!';
+      document.getElementById('up-title').value = '';
+      document.getElementById('up-tags').value  = '';
+      document.getElementById('up-file').value  = '';
       loadMedia();
-    }else{
-      status.style.color='var(--red)';
-      status.textContent='❌ Upload failed — '+(JSON.parse(xhr.responseText)?.error||'Unknown error');
+    } else {
+      status.style.color = 'var(--red)';
+      status.textContent = '⚠️ Uploaded but DB save failed: ' + confirmData.error;
     }
-  };
-  xhr.onerror=()=>{btn.disabled=false;status.style.color='var(--red)';status.textContent='❌ Network error.';};
-  xhr.send(fd);
+  } catch(err) {
+    btn.disabled = false; fill.style.width = '0%'; bg.style.display = 'none';
+    status.style.color = 'var(--red)';
+    status.textContent = '❌ ' + (err.message || 'Upload failed');
+    console.error('Upload error:', err);
+  }
 }
 
 /* Edit */
