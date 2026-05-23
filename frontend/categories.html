@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Categories — VelvetHub</title>
+  <meta name="description" content="Browse all adult content categories on VelvetHub. Free HD videos and photos."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    .cat-page-wrap{max-width:1440px;margin:0 auto;padding:30px 20px 80px;}
+
+    .cat-hero{
+      background:radial-gradient(ellipse at 20% 50%,rgba(100,0,8,0.3),transparent 60%),
+                radial-gradient(ellipse at 80% 50%,rgba(80,0,50,0.15),transparent 60%),
+                var(--bg2);
+      border-bottom:1px solid var(--border);
+      padding:34px 20px;margin-bottom:30px;text-align:center;
+    }
+    .cat-hero h1{
+      font-size:clamp(22px,4vw,38px);font-weight:900;
+      background:linear-gradient(135deg,#fff,rgba(255,255,255,0.75));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      margin-bottom:8px;
+    }
+    .cat-hero p{font-size:14px;color:var(--muted2);}
+
+    .cats-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+      gap:14px;
+    }
+
+    .cat-item{
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:var(--radius);overflow:hidden;
+      cursor:pointer;
+      position:relative;
+      transition:transform 0.22s cubic-bezier(.22,.68,0,1.2),
+                 box-shadow 0.22s ease,border-color 0.22s;
+      text-decoration:none;color:inherit;
+    }
+    .cat-item:hover{
+      transform:translateY(-4px) scale(1.01);
+      box-shadow:0 10px 30px rgba(232,0,14,0.2);
+      border-color:rgba(232,0,14,0.3);
+    }
+
+    .cat-item-thumb{
+      width:100%;padding-top:60%;
+      position:relative;overflow:hidden;
+      background:radial-gradient(ellipse,#1a0508,#080808);
+    }
+    .cat-item-thumb img{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;transition:transform 0.4s ease;
+    }
+    .cat-item:hover .cat-item-thumb img{transform:scale(1.07);}
+
+    .cat-item-overlay{
+      position:absolute;inset:0;
+      background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.15) 60%,transparent 100%);
+      display:flex;align-items:flex-end;padding:12px;
+    }
+
+    .cat-item-placeholder{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      font-size:38px;opacity:0.2;
+    }
+
+    .cat-item-body{
+      padding:11px 13px 13px;
+    }
+    .cat-item-name{
+      font-size:15px;font-weight:700;margin-bottom:3px;
+    }
+    .cat-item-count{
+      font-size:12px;color:var(--muted2);
+    }
+    .cat-item-count span{color:var(--red);font-weight:600;}
+
+    .cat-browse-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      margin-top:9px;
+      font-size:12px;font-weight:600;color:var(--red);
+    }
+    .cat-item:hover .cat-browse-btn{text-decoration:underline;}
+
+    /* Loading skeleton */
+    .cat-skel{
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:var(--radius);overflow:hidden;
+    }
+    .cat-skel-thumb{
+      width:100%;padding-top:60%;
+      background:linear-gradient(90deg,#141414 25%,#1e1e1e 50%,#141414 75%);
+      background-size:200% 100%;animation:shimmer 1.5s infinite;
+    }
+    .cat-skel-body{padding:11px 13px 14px;}
+    .cat-skel-line{height:12px;border-radius:4px;margin-bottom:8px;
+      background:linear-gradient(90deg,#141414 25%,#1e1e1e 50%,#141414 75%);
+      background-size:200% 100%;animation:shimmer 1.5s infinite;}
+    .cat-skel-line.w60{width:60%;}
+    .cat-skel-line.w35{width:35%;}
+
+    .cat-empty{text-align:center;padding:80px 20px;color:var(--muted2);grid-column:1/-1;}
+
+    @media(max-width:600px){
+      .cats-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+      .cat-hero{padding:24px 16px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="logo" href="/">Velvet<span>Hub</span></a>
+    <div class="search-wrap">
+      <svg class="search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search categories…" autocomplete="off"/>
+    </div>
+    <div class="nav-actions">
+      <a href="#" class="nav-cams-link" onclick="window.location.href='/#live-cams';return false;">🔴 Live Cams</a>
+      <a href="/admin" class="btn-admin">⚙ Admin</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="cat-hero">
+  <h1>Browse by <span style="background:linear-gradient(135deg,#ff1a27,#e8000e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Category</span></h1>
+  <p>Explore our full collection organized by category</p>
+</div>
+
+<!-- CATEGORIES GRID -->
+<div class="cat-page-wrap">
+  <div id="catsGrid" class="cats-grid">
+    <!-- skeleton -->
+    ${Array(12).fill(`
+      <div class="cat-skel">
+        <div class="cat-skel-thumb"></div>
+        <div class="cat-skel-body">
+          <div class="cat-skel-line"></div>
+          <div class="cat-skel-line w60"></div>
+        </div>
+      </div>`).join('')}
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-noise"></div>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">Velvet<span>Hub</span></div>
+        <p>The premium destination for free HD adult content.</p>
+      </div>
+      <div class="footer-links-col">
+        <h4>Legal</h4>
+        <a href="#">Terms of Service</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">DMCA</a>
+        <a href="#">2257 Statement</a>
+      </div>
+      <div class="footer-links-col">
+        <h4>Site</h4>
+        <a href="/">Home</a>
+        <a href="/categories">Categories</a>
+        <a href="/admin">Admin</a>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom">
+      <p class="footer-disclaimer">⚠️ This site contains adult content for viewers 18+. All models are 18+. Complies with 18 U.S.C. 2257.</p>
+      <p class="footer-copy">© 2025 VelvetHub. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const EMOJI = {
+  amateur:'🎭',asian:'🌸',milf:'💋',teen:'🌟',lesbian:'💞',
+  bbw:'💖',hardcore:'🔥',softcore:'✨',solo:'💫',group:'🎪',
+  anal:'⭐',interracial:'🌍',bdsm:'⛓️',uncategorized:'📁'
+};
+
+async function loadCategories(){
+  const grid = document.getElementById('catsGrid');
+  try{
+    const res  = await fetch('/api/public/media/categories');
+    const cats = await res.json();
+
+    // also get total media per cat
+    if(!cats.length){
+      grid.innerHTML='<div class="cat-empty">No categories found yet.</div>';
+      return;
+    }
+
+    grid.innerHTML = cats.map(c=>`
+      <a class="cat-item" href="/?category=${encodeURIComponent(c.name)}">
+        <div class="cat-item-thumb">
+          <div class="cat-item-placeholder">${EMOJI[c.name]||'🎬'}</div>
+          <div class="cat-item-overlay"></div>
+        </div>
+        <div class="cat-item-body">
+          <div class="cat-item-name">${capitalize(c.name)}</div>
+          <div class="cat-item-count"><span>${c.count}</span> item${c.count!==1?'s':''}</div>
+          <div class="cat-browse-btn">Browse →</div>
+        </div>
+      </a>`).join('');
+  }catch{
+    grid.innerHTML='<div class="cat-empty">Failed to load categories.</div>';
+  }
+}
+
+// Search filter
+document.getElementById('searchInput').addEventListener('input', e=>{
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.cat-item').forEach(el=>{
+    const name = el.querySelector('.cat-item-name')?.textContent.toLowerCase()||'';
+    el.style.display = name.includes(q) ? '' : 'none';
+  });
+});
+
+function capitalize(s){ return (s||'').charAt(0).toUpperCase() + (s||'').slice(1); }
+
+loadCategories();
+</script>
+</body>
+</html>

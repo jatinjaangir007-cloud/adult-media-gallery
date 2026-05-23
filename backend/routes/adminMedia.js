@@ -51,6 +51,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 
     const media = await Media.create({
       title,
+      category: req.body.category || 'uncategorized',
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       fileType,
       fileUrl: result.secure_url,
@@ -80,7 +81,7 @@ router.put('/:id', auth, async (req, res) => {
     const { title, tags } = req.body;
     const media = await Media.findByIdAndUpdate(
       req.params.id,
-      { title, tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [] },
+      { title, category: req.body.category || 'uncategorized', tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [] },
       { new: true }
     );
     if (!media) return res.status(404).json({ error: 'Not found' });

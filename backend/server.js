@@ -5,9 +5,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 
-import adminAuthRoutes from "./routes/adminAuth.js";
-import adminMediaRoutes from "./routes/adminMedia.js";
-import publicMediaRoutes from "./routes/publicMedia.js";
+import adminAuthRoutes  from './routes/adminAuth.js';
+import adminMediaRoutes from './routes/adminMedia.js';
+import adminAdsRoutes   from './routes/adminAds.js';
+import adminCamsRoutes  from './routes/adminCams.js';
+import publicMediaRoutes from './routes/publicMedia.js';
+import publicExtrasRoutes from './routes/publicExtras.js';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -26,9 +29,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 // ---------- API routes ----------
-app.use("/api/admin", adminAuthRoutes);
-app.use("/api/admin/media", adminMediaRoutes);
-app.use("/api/public/media", publicMediaRoutes);
+app.use('/api/admin',        adminAuthRoutes);
+app.use('/api/admin/media',  adminMediaRoutes);
+app.use('/api/admin/ads',    adminAdsRoutes);
+app.use('/api/admin/cams',   adminCamsRoutes);
+app.use('/api/public/media', publicMediaRoutes);
+app.use('/api/public',       publicExtrasRoutes);
 
 // ---------- ADMIN PAGES ----------
 app.get("/admin", (req, res) => {
@@ -41,6 +47,10 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/view', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/view.html'));
+});
+
+app.get('/categories', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/categories.html'));
 });
 
 // ---------- MongoDB ----------

@@ -2,57 +2,54 @@
 <html lang="en">
 <head>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PE0NY4NGZ8"></script>
-  <script>
-    window.dataLayer=window.dataLayer||[];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js',new Date());gtag('config','G-PE0NY4NGZ8');
-  </script>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-PE0NY4NGZ8');</script>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>VelvetHub — Free HD Adult Videos & Photos</title>
   <meta name="description" content="Watch free HD adult videos and premium photos on VelvetHub. 18+ only."/>
-  <meta name="robots" content="index, follow"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css"/>
 </head>
 <body>
 
-<!-- ══════════ AGE GATE ══════════ -->
+<!-- AGE GATE -->
 <div id="age-gate" class="age-gate">
   <div class="age-noise"></div>
   <div class="age-box">
     <div class="age-logo">Velvet<span>Hub</span></div>
     <div class="age-badge">🔞 ADULTS ONLY — 18+</div>
     <h2>Age Verification Required</h2>
-    <p>This website contains explicit adult content. You must be <strong>18 years of age or older</strong> to enter. By clicking "Enter" you confirm you are of legal age in your jurisdiction and agree to our terms.</p>
+    <p>This website contains explicit adult content. You must be <strong>18 years of age or older</strong> to enter.</p>
     <div class="age-buttons">
       <button id="age-yes"><span>✓</span> I Am 18+ — Enter Site</button>
       <button id="age-no">Exit</button>
     </div>
-    <p class="age-fine">By entering you accept our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
+    <p class="age-fine">By entering you accept our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a></p>
   </div>
 </div>
 
-<!-- ══════════ NAVBAR ══════════ -->
+<!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-inner">
     <a class="logo" href="/">Velvet<span>Hub</span></a>
-
     <div class="search-wrap">
       <svg class="search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="searchInput" placeholder="Search videos, photos, tags…" autocomplete="off"/>
       <button class="search-clear" id="searchClear" style="display:none">✕</button>
     </div>
-
     <div class="nav-actions">
+      <a href="/categories" class="btn-admin" style="color:var(--muted)">📂 Categories</a>
+      <a href="#live-cams" class="nav-cams-link">🔴 Live Cams</a>
       <a href="/admin" class="btn-admin">⚙ Admin</a>
     </div>
   </div>
 </nav>
 
-<!-- ══════════ FILTER BAR ══════════ -->
-<div class="filter-bar" id="filterBar">
+<!-- AD SLOT: HEADER BANNER -->
+<div class="ad-slot ad-header" id="ad-header" style="display:none"></div>
+
+<!-- FILTER TABS -->
+<div class="filter-bar">
   <div class="filter-inner">
     <button class="ftab active" data-filter="all">🔥 All</button>
     <button class="ftab" data-filter="video">▶ Videos</button>
@@ -60,17 +57,25 @@
   </div>
 </div>
 
-<!-- ══════════ HERO BANNER ══════════ -->
-<div class="hero-banner" id="heroBanner">
+<!-- CATEGORIES BAR -->
+<div class="cat-bar" id="catBar">
+  <div class="cat-inner" id="catInner">
+    <button class="cat-pill active" data-cat="all">All</button>
+    <!-- dynamic pills injected here -->
+  </div>
+</div>
+
+<!-- HERO BANNER -->
+<div class="hero-banner">
   <div class="hero-noise"></div>
   <div class="hero-glow"></div>
   <div class="hero-inner">
     <h1 class="hero-title">Premium HD <span>Adult</span> Content</h1>
-    <p class="hero-sub">Thousands of HD videos & photos — free, always updated</p>
+    <p class="hero-sub">Thousands of HD videos &amp; photos — free, always updated</p>
   </div>
 </div>
 
-<!-- ══════════ MAIN ══════════ -->
+<!-- MAIN GALLERY -->
 <main class="main-content">
   <div class="section-header">
     <div class="section-left">
@@ -82,14 +87,40 @@
   <div id="gallery" class="gallery-grid"></div>
 </main>
 
-<!-- ══════════ FOOTER ══════════ -->
+<!-- AD SLOT: AFTER GALLERY -->
+<div class="ad-slot ad-mid" id="ad-after-row-3" style="display:none"></div>
+
+<!-- LIVE CAMS SECTION -->
+<section class="cams-section" id="live-cams">
+  <div class="cams-inner">
+    <div class="cams-header">
+      <div class="cams-title-wrap">
+        <span class="live-pulse"></span>
+        <h2 class="cams-title">Live Cams</h2>
+        <span class="live-label">LIVE</span>
+      </div>
+      <p class="cams-sub">Watch real people live — 100% free to join</p>
+    </div>
+    <div id="camsGrid" class="cams-grid">
+      <div class="cams-skeleton-wrap">
+        <div class="cam-skeleton"></div><div class="cam-skeleton"></div>
+        <div class="cam-skeleton"></div><div class="cam-skeleton"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AD SLOT: FOOTER BANNER -->
+<div class="ad-slot ad-footer" id="ad-footer" style="display:none"></div>
+
+<!-- FOOTER -->
 <footer class="site-footer">
   <div class="footer-noise"></div>
   <div class="footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo">Velvet<span>Hub</span></div>
-        <p>The premium destination for free HD adult content. All content is user uploaded and hosted on secure cloud servers.</p>
+        <p>The premium destination for free HD adult content. All content hosted on secure cloud servers.</p>
       </div>
       <div class="footer-links-col">
         <h4>Legal</h4>
@@ -101,14 +132,14 @@
       <div class="footer-links-col">
         <h4>Site</h4>
         <a href="/">Home</a>
-        <a href="/?filter=video">Videos</a>
-        <a href="/?filter=image">Photos</a>
+        <a href="/categories">Categories</a>
+        <a href="#live-cams">Live Cams</a>
         <a href="/admin">Admin</a>
       </div>
     </div>
     <div class="footer-divider"></div>
     <div class="footer-bottom">
-      <p class="footer-disclaimer">⚠️ This site contains adult content intended for viewers 18+. All models are 18 years of age or older. All content complies with 18 U.S.C. 2257.</p>
+      <p class="footer-disclaimer">⚠️ This site contains adult content for viewers 18+. All models are 18+. Complies with 18 U.S.C. 2257.</p>
       <p class="footer-copy">© 2025 VelvetHub. All rights reserved.</p>
     </div>
   </div>

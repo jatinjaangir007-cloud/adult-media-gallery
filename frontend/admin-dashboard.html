@@ -1,394 +1,717 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script>
-    if (localStorage.getItem('isAdmin') !== 'true') window.location.replace('/admin');
-  </script>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>VelvetHub — Admin Dashboard</title>
+  <script>if(localStorage.getItem('isAdmin')!=='true')window.location.replace('/admin');</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0b0b0b; color: #fff; font-family: Arial, sans-serif; min-height: 100vh; }
+    :root{
+      --red:#e8000e;--red2:#ff1a27;
+      --bg:#090909;--bg2:#111;--bg3:#181818;--bg4:#1f1f1f;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.11);
+      --text:#f0f0f0;--muted:#888;--muted2:#555;
+      --gold:#c9a84c;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+    a{text-decoration:none;color:inherit;}
+    button{cursor:pointer;font-family:inherit;}
 
-    header {
-      background: #111;
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 2px solid #e50914;
+    /* ── Header ── */
+    .adm-header{
+      background:var(--bg2);border-bottom:2px solid var(--red);
+      padding:0 24px;height:60px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:100;
     }
-    header h1 { font-size: 20px; }
-    header span { color: #e50914; }
-    .logout-btn {
-      background: #e50914;
-      color: #fff;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+    .adm-logo{font-size:20px;font-weight:900;}
+    .adm-logo span{color:var(--red);}
+    .adm-right{display:flex;align-items:center;gap:12px;}
+    .adm-site-link{font-size:12px;color:var(--muted);border:1px solid var(--border2);padding:6px 12px;border-radius:6px;transition:color 0.2s;}
+    .adm-site-link:hover{color:#ccc;}
+    .logout-btn{background:rgba(232,0,14,0.1);border:1px solid rgba(232,0,14,0.3);color:var(--red);padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;transition:all 0.2s;}
+    .logout-btn:hover{background:var(--red);color:#fff;}
 
-    .main { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+    /* ── Tab Nav ── */
+    .tab-nav{
+      background:var(--bg2);border-bottom:1px solid var(--border);
+      display:flex;padding:0 24px;gap:2px;
+      overflow-x:auto;scrollbar-width:none;
+    }
+    .tab-nav::-webkit-scrollbar{display:none;}
+    .tab-btn{
+      background:none;border:none;color:var(--muted);
+      padding:14px 18px;font-size:13px;font-weight:600;
+      white-space:nowrap;border-bottom:3px solid transparent;
+      transition:color 0.2s,border-color 0.2s;
+    }
+    .tab-btn:hover{color:#ccc;}
+    .tab-btn.active{color:#fff;border-bottom-color:var(--red);}
 
-    /* Upload Card */
-    .upload-card {
-      background: #161616;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 36px;
-    }
-    .upload-card h2 { margin-bottom: 16px; font-size: 16px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-    .upload-card input[type=text] {
-      width: 100%;
-      background: #222;
-      border: 1px solid #333;
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .file-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
-    .file-row input[type=file] { flex: 1; color: #aaa; font-size: 14px; }
-    .upload-btn {
-      background: #e50914;
-      color: #fff;
-      border: none;
-      padding: 11px 28px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: bold;
-      white-space: nowrap;
-    }
-    .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .progress-bar-bg { background: #2a2a2a; border-radius: 4px; height: 8px; margin-bottom: 8px; overflow: hidden; display: none; }
-    .progress-bar-fill { height: 100%; background: #e50914; width: 0%; transition: width 0.2s; }
-    .status-text { font-size: 13px; min-height: 18px; }
+    /* ── Main ── */
+    .adm-main{max-width:1200px;margin:0 auto;padding:28px 24px 80px;}
 
-    /* Media Grid */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-    .section-header h2 { font-size: 16px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-    .media-count { font-size: 13px; color: #555; }
+    /* Panels */
+    .panel{display:none;}
+    .panel.active{display:block;}
 
-    .media-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
+    /* ── Section Cards ── */
+    .card{
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:12px;padding:22px;margin-bottom:20px;
     }
+    .card-title{
+      font-size:13px;font-weight:700;text-transform:uppercase;
+      letter-spacing:1px;color:var(--muted);margin-bottom:18px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .card-title span{color:var(--red);}
 
-    .media-card {
-      background: #161616;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      overflow: hidden;
+    /* ── Inputs ── */
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+    .form-row.single{grid-template-columns:1fr;}
+    .form-row.triple{grid-template-columns:1fr 1fr 1fr;}
+    label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+    input[type=text],input[type=url],select,textarea{
+      width:100%;background:var(--bg3);
+      border:1px solid var(--border2);border-radius:7px;
+      color:var(--text);padding:10px 12px;font-size:13px;font-family:inherit;
+      outline:none;transition:border-color 0.2s;
     }
-    .media-thumb {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      display: block;
-      background: #1a1a1a;
-    }
-    .media-thumb.video-thumb { object-fit: contain; }
-    .media-info { padding: 12px; }
-    .media-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .media-tags { font-size: 11px; color: #777; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .media-actions { display: flex; gap: 8px; }
-    .edit-btn {
-      flex: 1;
-      background: #222;
-      border: 1px solid #444;
-      color: #fff;
-      padding: 6px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .edit-btn:hover { background: #333; }
-    .delete-btn {
-      flex: 1;
-      background: #300;
-      border: 1px solid #600;
-      color: #ff4444;
-      padding: 6px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .delete-btn:hover { background: #400; }
+    input:focus,select:focus,textarea:focus{border-color:rgba(232,0,14,0.5);}
+    textarea{min-height:90px;resize:vertical;}
+    select option{background:var(--bg3);}
 
-    /* Edit modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
+    .toggle-row{display:flex;align-items:center;gap:10px;}
+    .toggle{position:relative;width:42px;height:22px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .toggle-slider{
+      position:absolute;inset:0;background:#333;border-radius:22px;
+      cursor:pointer;transition:background 0.2s;
     }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: #161616;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 28px;
-      width: 420px;
-      max-width: 95vw;
+    .toggle-slider::before{
+      content:'';position:absolute;width:16px;height:16px;
+      background:#fff;border-radius:50%;left:3px;top:3px;
+      transition:transform 0.2s;
     }
-    .modal h3 { margin-bottom: 16px; }
-    .modal input {
-      width: 100%;
-      background: #222;
-      border: 1px solid #444;
-      color: #fff;
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
-    .modal-save {
-      flex: 1;
-      background: #e50914;
-      color: #fff;
-      border: none;
-      padding: 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .modal-cancel {
-      flex: 1;
-      background: #222;
-      color: #aaa;
-      border: 1px solid #444;
-      padding: 10px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+    .toggle input:checked ~ .toggle-slider{background:var(--red);}
+    .toggle input:checked ~ .toggle-slider::before{transform:translateX(20px);}
+    .toggle-label{font-size:12px;color:var(--muted);}
 
-    .empty-state { color: #444; text-align: center; padding: 60px 0; font-size: 15px; }
-    .loading { color: #555; text-align: center; padding: 40px 0; }
+    /* ── Buttons ── */
+    .btn-red{
+      background:linear-gradient(135deg,var(--red),#a5000a);
+      color:#fff;border:none;padding:10px 22px;
+      border-radius:7px;font-size:13px;font-weight:700;
+      box-shadow:0 3px 14px rgba(232,0,14,0.3);
+      transition:all 0.2s;
+    }
+    .btn-red:hover{background:linear-gradient(135deg,var(--red2),var(--red));transform:translateY(-1px);}
+    .btn-red:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+    .btn-ghost{
+      background:rgba(255,255,255,0.04);
+      border:1px solid var(--border2);color:var(--muted);
+      padding:8px 16px;border-radius:7px;font-size:12px;font-weight:600;
+      transition:all 0.2s;
+    }
+    .btn-ghost:hover{color:#ccc;border-color:rgba(255,255,255,0.2);}
+
+    .btn-danger{
+      background:rgba(232,0,14,0.08);
+      border:1px solid rgba(232,0,14,0.2);
+      color:var(--red);padding:7px 14px;border-radius:6px;
+      font-size:12px;font-weight:600;transition:all 0.2s;
+    }
+    .btn-danger:hover{background:var(--red);color:#fff;}
+
+    /* ── Progress ── */
+    .prog-bg{background:var(--bg4);border-radius:4px;height:6px;display:none;margin-bottom:8px;overflow:hidden;}
+    .prog-fill{height:100%;background:var(--red);width:0%;transition:width 0.2s;border-radius:4px;}
+    .status-txt{font-size:12px;min-height:16px;color:var(--muted);}
+
+    /* ── Media Grid ── */
+    .media-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:14px;
+    }
+    .m-card{
+      background:var(--bg3);border:1px solid var(--border);
+      border-radius:10px;overflow:hidden;
+    }
+    .m-thumb{
+      width:100%;padding-top:56.25%;position:relative;
+      background:#000;overflow:hidden;
+    }
+    .m-thumb img,.m-thumb video{
+      position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    }
+    .m-body{padding:10px 11px 12px;}
+    .m-title{font-size:13px;font-weight:600;margin-bottom:3px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .m-cat{font-size:11px;color:var(--gold);margin-bottom:8px;}
+    .m-tags{font-size:10px;color:var(--muted2);margin-bottom:8px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .m-actions{display:flex;gap:7px;}
+    .m-actions button{flex:1;padding:6px;border-radius:5px;font-size:11px;font-weight:600;}
+
+    /* ── Ads Table ── */
+    .ad-table{width:100%;border-collapse:collapse;}
+    .ad-table th{
+      text-align:left;font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.5px;
+      color:var(--muted2);padding:8px 10px;
+      border-bottom:1px solid var(--border);
+    }
+    .ad-table td{
+      padding:10px 10px;border-bottom:1px solid var(--border);
+      font-size:13px;vertical-align:middle;
+    }
+    .ad-table tr:last-child td{border-bottom:none;}
+    .ad-pos-badge{
+      font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;
+      background:rgba(232,0,14,0.12);color:var(--red);
+      border:1px solid rgba(232,0,14,0.25);white-space:nowrap;
+    }
+    .ad-status-on{color:#4caf50;font-weight:700;font-size:12px;}
+    .ad-status-off{color:var(--muted2);font-weight:700;font-size:12px;}
+
+    /* ── Cams Table ── */
+    .cam-table{width:100%;border-collapse:collapse;}
+    .cam-table th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted2);padding:8px 10px;border-bottom:1px solid var(--border);}
+    .cam-table td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+    .cam-table tr:last-child td{border-bottom:none;}
+    .cam-thumb-sm{width:60px;height:40px;object-fit:cover;border-radius:4px;background:#111;}
+
+    /* ── Modal ── */
+    .modal-overlay{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,0.85);z-index:500;
+      align-items:center;justify-content:center;
+    }
+    .modal-overlay.open{display:flex;}
+    .modal-box{
+      background:var(--bg2);border:1px solid var(--border2);
+      border-radius:14px;padding:28px;
+      width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;
+    }
+    .modal-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+    .modal-footer{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+
+    /* ── Stats row ── */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+    .stat-card{
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:10px;padding:18px;text-align:center;
+    }
+    .stat-num{font-size:28px;font-weight:900;color:var(--red);}
+    .stat-label{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
+
+    .empty-state{text-align:center;padding:40px;color:var(--muted2);font-size:13px;}
+
+    @media(max-width:768px){
+      .form-row{grid-template-columns:1fr;}
+      .form-row.triple{grid-template-columns:1fr;}
+      .stats-row{grid-template-columns:repeat(2,1fr);}
+      .adm-main{padding:18px 14px 60px;}
+      .tab-btn{padding:12px 12px;font-size:12px;}
+      .media-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Velvet<span>Hub</span> Admin</h1>
-  <button class="logout-btn" onclick="logout()">Logout</button>
+<!-- Header -->
+<header class="adm-header">
+  <div class="adm-logo">Velvet<span>Hub</span> <span style="font-size:13px;font-weight:500;color:var(--muted);margin-left:6px;">Admin</span></div>
+  <div class="adm-right">
+    <a href="/" class="adm-site-link" target="_blank">↗ View Site</a>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
 </header>
 
-<div class="main">
+<!-- Tab Nav -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-panel="media">📁 Media</button>
+  <button class="tab-btn" data-panel="ads">📢 Ads Manager</button>
+  <button class="tab-btn" data-panel="cams">🔴 Live Cams</button>
+  <button class="tab-btn" data-panel="stats">📊 Stats</button>
+</nav>
 
-  <!-- Upload Section -->
-  <div class="upload-card">
-    <h2>Upload New Media</h2>
-    <input type="text" id="title" placeholder="Title" />
-    <input type="text" id="tags" placeholder="Tags (comma separated)" />
-    <div class="file-row">
-      <input type="file" id="file" accept="image/*,video/*" />
-      <button class="upload-btn" id="uploadBtn" onclick="startUpload()">Upload</button>
+<!-- Main -->
+<div class="adm-main">
+
+  <!-- ════════ MEDIA PANEL ════════ -->
+  <div class="panel active" id="panel-media">
+
+    <!-- Upload -->
+    <div class="card">
+      <div class="card-title"><span>+</span> Upload New Media</div>
+      <div class="form-row">
+        <div><label>Title *</label><input type="text" id="up-title" placeholder="Enter title"/></div>
+        <div><label>Category</label>
+          <select id="up-category">
+            <option value="uncategorized">Uncategorized</option>
+            <option value="amateur">Amateur</option>
+            <option value="asian">Asian</option>
+            <option value="milf">MILF</option>
+            <option value="teen">Teen (18+)</option>
+            <option value="lesbian">Lesbian</option>
+            <option value="bbw">BBW</option>
+            <option value="hardcore">Hardcore</option>
+            <option value="softcore">Softcore</option>
+            <option value="solo">Solo</option>
+            <option value="group">Group</option>
+            <option value="anal">Anal</option>
+            <option value="interracial">Interracial</option>
+            <option value="bdsm">BDSM</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div><label>Tags (comma separated)</label><input type="text" id="up-tags" placeholder="e.g. blonde, outdoor, hd"/></div>
+      </div>
+      <div class="form-row">
+        <div><label>File *</label><input type="file" id="up-file" accept="image/*,video/*" style="color:var(--muted);"/></div>
+        <div style="display:flex;align-items:flex-end;">
+          <button class="btn-red" id="uploadBtn" onclick="startUpload()" style="width:100%">⬆ Upload</button>
+        </div>
+      </div>
+      <div class="prog-bg" id="progBg"><div class="prog-fill" id="progFill"></div></div>
+      <div class="status-txt" id="statusTxt"></div>
     </div>
-    <div class="progress-bar-bg" id="progressBg">
-      <div class="progress-bar-fill" id="progressBar"></div>
+
+    <!-- Media list -->
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span><span>◈</span> Uploaded Media</span>
+        <span id="mCount" style="font-size:12px;color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0;"></span>
+      </div>
+      <div id="mediaGrid" class="media-grid"><div class="empty-state">Loading…</div></div>
     </div>
-    <div class="status-text" id="statusText"></div>
   </div>
 
-  <!-- Media List -->
-  <div class="section-header">
-    <h2>Uploaded Media</h2>
-    <span class="media-count" id="mediaCount"></span>
-  </div>
-  <div id="mediaGrid" class="media-grid">
-    <div class="loading">Loading...</div>
+  <!-- ════════ ADS PANEL ════════ -->
+  <div class="panel" id="panel-ads">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span><span>📢</span> Ad Slots Manager</span>
+        <button class="btn-red" onclick="openAdModal()">+ Add Ad Slot</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">
+        Paste any ad network code (ExoClick, TrafficJunky, etc.) into the slot. Ads are injected live on the homepage.
+        <br>Positions: <strong>Header Banner</strong> · <strong>After Row 1</strong> · <strong>After Row 3</strong> · <strong>Footer Banner</strong>
+      </p>
+      <div id="adsTableWrap"><div class="empty-state">Loading…</div></div>
+    </div>
   </div>
 
+  <!-- ════════ CAMS PANEL ════════ -->
+  <div class="panel" id="panel-cams">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span><span>🔴</span> Live Cams Manager</span>
+        <button class="btn-red" onclick="openCamModal()">+ Add Cam Site</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">
+        Add affiliate cam site links shown in the Live Cams section. Use your affiliate URL for monetization.
+      </p>
+      <div id="camsTableWrap"><div class="empty-state">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- ════════ STATS PANEL ════════ -->
+  <div class="panel" id="panel-stats">
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="stat-num" id="stat-media">—</div><div class="stat-label">Total Media</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-videos">—</div><div class="stat-label">Videos</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-images">—</div><div class="stat-label">Photos</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-ads">—</div><div class="stat-label">Active Ads</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📊</span> Top Viewed Content</div>
+      <div id="topViewed"><div class="empty-state">Loading…</div></div>
+    </div>
+  </div>
+
+</div><!-- /adm-main -->
+
+<!-- ── Edit Media Modal ── -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title">Edit Media</div>
+    <input type="hidden" id="edit-id"/>
+    <div style="margin-bottom:12px"><label>Title</label><input type="text" id="edit-title"/></div>
+    <div style="margin-bottom:12px"><label>Category</label>
+      <select id="edit-category">
+        <option value="uncategorized">Uncategorized</option>
+        <option value="amateur">Amateur</option>
+        <option value="asian">Asian</option>
+        <option value="milf">MILF</option>
+        <option value="teen">Teen (18+)</option>
+        <option value="lesbian">Lesbian</option>
+        <option value="bbw">BBW</option>
+        <option value="hardcore">Hardcore</option>
+        <option value="softcore">Softcore</option>
+        <option value="solo">Solo</option>
+        <option value="group">Group</option>
+        <option value="anal">Anal</option>
+        <option value="interracial">Interracial</option>
+        <option value="bdsm">BDSM</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px"><label>Tags (comma separated)</label><input type="text" id="edit-tags"/></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn-red" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
 </div>
 
-<!-- Edit Modal -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <h3>Edit Media</h3>
-    <input type="text" id="editTitle" placeholder="Title" />
-    <input type="text" id="editTags" placeholder="Tags (comma separated)" />
-    <input type="hidden" id="editId" />
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeEdit()">Cancel</button>
-      <button class="modal-save" onclick="saveEdit()">Save</button>
+<!-- ── Ad Modal ── -->
+<div class="modal-overlay" id="adModal">
+  <div class="modal-box">
+    <div class="modal-title" id="adModalTitle">Add Ad Slot</div>
+    <input type="hidden" id="ad-id"/>
+    <div class="form-row">
+      <div><label>Name</label><input type="text" id="ad-name" placeholder="e.g. Header Banner ExoClick"/></div>
+      <div><label>Position</label>
+        <select id="ad-position">
+          <option value="header">Header Banner</option>
+          <option value="after-row-1">After Row 1 (mid-gallery)</option>
+          <option value="after-row-3">After Row 3 (lower gallery)</option>
+          <option value="footer">Footer Banner</option>
+          <option value="popup">Popup / Interstitial</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Ad Code (HTML / JavaScript)</label>
+      <textarea id="ad-code" placeholder="Paste your ad network code here…"></textarea>
+    </div>
+    <div class="toggle-row" style="margin-bottom:4px">
+      <label class="toggle"><input type="checkbox" id="ad-enabled" checked><span class="toggle-slider"></span></label>
+      <span class="toggle-label">Enabled</span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('adModal')">Cancel</button>
+      <button class="btn-red" onclick="saveAd()">Save Ad</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Cam Modal ── -->
+<div class="modal-overlay" id="camModal">
+  <div class="modal-box">
+    <div class="modal-title" id="camModalTitle">Add Cam Site</div>
+    <input type="hidden" id="cam-id"/>
+    <div class="form-row">
+      <div><label>Site Name *</label><input type="text" id="cam-name" placeholder="e.g. Chaturbate"/></div>
+      <div><label>Badge Label</label><input type="text" id="cam-badge" placeholder="LIVE" value="LIVE"/></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Affiliate URL *</label><input type="url" id="cam-url" placeholder="https://chaturbate.com/?ref=yourcode"/></div>
+    <div style="margin-bottom:12px"><label>Thumbnail Image URL</label><input type="url" id="cam-image" placeholder="https://…/image.jpg"/></div>
+    <div style="margin-bottom:12px"><label>Description</label><input type="text" id="cam-desc" placeholder="Watch live models — free to join"/></div>
+    <div class="form-row">
+      <div><label>Display Order</label><input type="text" id="cam-order" placeholder="0"/></div>
+      <div style="display:flex;align-items:center;gap:10px;padding-top:22px;">
+        <label class="toggle"><input type="checkbox" id="cam-enabled" checked><span class="toggle-slider"></span></label>
+        <span class="toggle-label">Enabled</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('camModal')">Cancel</button>
+      <button class="btn-red" onclick="saveCam()">Save Cam Site</button>
     </div>
   </div>
 </div>
 
 <script>
 const token = () => localStorage.getItem('adminToken');
-const authHeaders = () => ({ 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' });
+const H = () => ({ 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' });
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const cap = s => (s||'').charAt(0).toUpperCase() + (s||'').slice(1);
 
-function logout() {
-  localStorage.removeItem('isAdmin');
-  localStorage.removeItem('adminToken');
-  window.location.href = '/admin';
-}
+/* ── LOGOUT ── */
+function logout(){localStorage.removeItem('isAdmin');localStorage.removeItem('adminToken');window.location.href='/admin';}
 
-// =========== LOAD MEDIA ===========
-async function loadMedia() {
-  const grid = document.getElementById('mediaGrid');
-  try {
-    const res = await fetch('/api/admin/media', { headers: { 'Authorization': `Bearer ${token()}` } });
-    const data = await res.json();
-    const list = data.media || [];
-    document.getElementById('mediaCount').textContent = `${list.length} item${list.length !== 1 ? 's' : ''}`;
-    if (list.length === 0) {
-      grid.innerHTML = '<div class="empty-state">No media uploaded yet.</div>';
-      return;
-    }
-    grid.innerHTML = list.map(m => `
-      <div class="media-card" id="card-${m._id}">
-        ${ m.fileType === 'video'
-          ? `<video class="media-thumb video-thumb" src="${m.fileUrl}" preload="metadata"></video>`
-          : `<img class="media-thumb" src="${m.fileUrl}" alt="${m.title}" loading="lazy">`
-        }
-        <div class="media-info">
-          <div class="media-title" title="${m.title}">${m.title}</div>
-          <div class="media-tags">${m.tags && m.tags.length ? m.tags.join(', ') : 'No tags'}</div>
-          <div class="media-actions">
-            <button class="edit-btn" onclick="openEdit('${m._id}', '${escHtml(m.title)}', '${escHtml((m.tags||[]).join(', '))}')">✏️ Edit</button>
-            <button class="delete-btn" onclick="deleteMedia('${m._id}')">🗑️ Delete</button>
+/* ── TABS ── */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    if(btn.dataset.panel==='ads') loadAds();
+    if(btn.dataset.panel==='cams') loadCams();
+    if(btn.dataset.panel==='stats') loadStats();
+  });
+});
+
+/* ── MODAL ── */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+/* ═══════════════ MEDIA ═══════════════ */
+async function loadMedia(){
+  const grid=document.getElementById('mediaGrid');
+  try{
+    const res=await fetch('/api/admin/media',{headers:{'Authorization':`Bearer ${token()}`}});
+    const data=await res.json();
+    const list=data.media||[];
+    document.getElementById('mCount').textContent=`${list.length} items`;
+    if(!list.length){grid.innerHTML='<div class="empty-state">No media uploaded yet.</div>';return;}
+    grid.innerHTML=list.map(m=>`
+      <div class="m-card" id="mc-${m._id}">
+        <div class="m-thumb">
+          ${m.fileType==='video'
+            ?`<video src="${esc(m.fileUrl)}" preload="metadata" muted></video>`
+            :`<img src="${esc(m.fileUrl)}" alt="${esc(m.title)}" loading="lazy">`}
+        </div>
+        <div class="m-body">
+          <div class="m-title" title="${esc(m.title)}">${esc(m.title)}</div>
+          <div class="m-cat">${cap(m.category||'uncategorized')}</div>
+          <div class="m-tags">${(m.tags||[]).join(', ')||'No tags'}</div>
+          <div class="m-actions">
+            <button class="btn-ghost" onclick="openEdit('${m._id}','${esc(m.title)}','${esc(m.category||'')}','${esc((m.tags||[]).join(','))}')">✏ Edit</button>
+            <button class="btn-danger" onclick="delMedia('${m._id}')">🗑</button>
           </div>
         </div>
-      </div>
-    `).join('');
-  } catch (e) {
-    grid.innerHTML = '<div class="empty-state">Failed to load media.</div>';
-  }
+      </div>`).join('');
+  }catch{grid.innerHTML='<div class="empty-state">Failed to load media.</div>';}
 }
 
-function escHtml(str) {
-  return (str || '').replace(/'/g, "&#39;").replace(/"/g, '&quot;');
-}
+/* Upload */
+function startUpload(){
+  const title=document.getElementById('up-title').value.trim();
+  const category=document.getElementById('up-category').value;
+  const tags=document.getElementById('up-tags').value.trim();
+  const file=document.getElementById('up-file').files[0];
+  const btn=document.getElementById('uploadBtn');
+  const fill=document.getElementById('progFill');
+  const bg=document.getElementById('progBg');
+  const status=document.getElementById('statusTxt');
 
-// =========== UPLOAD ===========
-function startUpload() {
-  const title = document.getElementById('title').value.trim();
-  const tags  = document.getElementById('tags').value.trim();
-  const file  = document.getElementById('file').files[0];
-  const btn   = document.getElementById('uploadBtn');
-  const bar   = document.getElementById('progressBar');
-  const bg    = document.getElementById('progressBg');
-  const status = document.getElementById('statusText');
+  if(!title){status.style.color='var(--red)';status.textContent='Title is required.';return;}
+  if(!file){status.style.color='var(--red)';status.textContent='Please select a file.';return;}
 
-  if (!title) { status.style.color='#f55'; status.textContent='Please enter a title.'; return; }
-  if (!file)  { status.style.color='#f55'; status.textContent='Please select a file.'; return; }
+  const fd=new FormData();
+  fd.append('file',file);fd.append('title',title);fd.append('category',category);fd.append('tags',tags);
 
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('title', title);
-  fd.append('tags', tags);
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST','/api/admin/media/upload');
+  xhr.setRequestHeader('Authorization',`Bearer ${token()}`);
+  btn.disabled=true;bg.style.display='block';
+  status.style.color='var(--muted)';status.textContent='Uploading to Cloudinary…';
 
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/api/admin/media/upload');
-  xhr.setRequestHeader('Authorization', `Bearer ${token()}`);
-
-  btn.disabled = true;
-  bg.style.display = 'block';
-  status.textContent = 'Uploading...';
-  status.style.color = '#aaa';
-
-  xhr.upload.onprogress = e => {
-    if (e.lengthComputable) {
-      const pct = Math.round(e.loaded / e.total * 100);
-      bar.style.width = pct + '%';
-      status.textContent = `${(e.loaded/1024/1024).toFixed(2)} MB / ${(e.total/1024/1024).toFixed(2)} MB`;
-    }
+  xhr.upload.onprogress=e=>{
+    if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);fill.style.width=p+'%';status.textContent=`${(e.loaded/1024/1024).toFixed(2)} MB / ${(e.total/1024/1024).toFixed(2)} MB`;}
   };
-
-  xhr.onload = () => {
-    btn.disabled = false;
-    bar.style.width = '0%';
-    bg.style.display = 'none';
-    if (xhr.status === 200) {
-      status.style.color = 'lime';
-      status.textContent = 'Upload completed ✅';
-      document.getElementById('title').value = '';
-      document.getElementById('tags').value = '';
-      document.getElementById('file').value = '';
+  xhr.onload=()=>{
+    btn.disabled=false;fill.style.width='0%';bg.style.display='none';
+    if(xhr.status===200){
+      status.style.color='#4caf50';status.textContent='✅ Upload complete!';
+      document.getElementById('up-title').value='';
+      document.getElementById('up-tags').value='';
+      document.getElementById('up-file').value='';
       loadMedia();
-    } else {
-      status.style.color = '#f55';
-      status.textContent = 'Upload failed ❌ — ' + (JSON.parse(xhr.responseText)?.error || 'Unknown error');
+    }else{
+      status.style.color='var(--red)';
+      status.textContent='❌ Upload failed — '+(JSON.parse(xhr.responseText)?.error||'Unknown error');
     }
   };
-
-  xhr.onerror = () => {
-    btn.disabled = false;
-    status.style.color = '#f55';
-    status.textContent = 'Network error ❌';
-  };
-
+  xhr.onerror=()=>{btn.disabled=false;status.style.color='var(--red)';status.textContent='❌ Network error.';};
   xhr.send(fd);
 }
 
-// =========== DELETE ===========
-async function deleteMedia(id) {
-  if (!confirm('Delete this item? This cannot be undone.')) return;
-  try {
-    const res = await fetch(`/api/admin/media/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token()}` }
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('card-' + id)?.remove();
-      loadMedia(); // refresh count
-    } else alert('Delete failed: ' + data.error);
-  } catch (e) { alert('Delete failed'); }
+/* Edit */
+function openEdit(id,title,category,tags){
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-title').value=title.replace(/&#39;/g,"'");
+  document.getElementById('edit-category').value=category||'uncategorized';
+  document.getElementById('edit-tags').value=tags.replace(/&#39;/g,"'");
+  openModal('editModal');
+}
+async function saveEdit(){
+  const id=document.getElementById('edit-id').value;
+  const title=document.getElementById('edit-title').value.trim();
+  const category=document.getElementById('edit-category').value;
+  const tags=document.getElementById('edit-tags').value.trim();
+  if(!title){alert('Title required');return;}
+  const res=await fetch(`/api/admin/media/${id}`,{method:'PUT',headers:H(),body:JSON.stringify({title,category,tags})});
+  const d=await res.json();
+  if(d.success){closeModal('editModal');loadMedia();}else alert('Edit failed: '+d.error);
 }
 
-// =========== EDIT ===========
-function openEdit(id, title, tags) {
-  document.getElementById('editId').value    = id;
-  document.getElementById('editTitle').value = title.replace(/&#39;/g, "'");
-  document.getElementById('editTags').value  = tags.replace(/&#39;/g, "'");
-  document.getElementById('editModal').classList.add('open');
+async function delMedia(id){
+  if(!confirm('Delete this item permanently?'))return;
+  const res=await fetch(`/api/admin/media/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token()}`}});
+  const d=await res.json();
+  if(d.success){document.getElementById('mc-'+id)?.remove();loadMedia();}
+  else alert('Delete failed: '+d.error);
 }
 
-function closeEdit() {
-  document.getElementById('editModal').classList.remove('open');
+/* ═══════════════ ADS ═══════════════ */
+let editingAdId=null;
+
+async function loadAds(){
+  const wrap=document.getElementById('adsTableWrap');
+  try{
+    const res=await fetch('/api/admin/ads',{headers:{'Authorization':`Bearer ${token()}`}});
+    const data=await res.json();
+    const ads=data.ads||[];
+    if(!ads.length){wrap.innerHTML='<div class="empty-state">No ad slots configured yet. Click "+ Add Ad Slot" to begin.</div>';return;}
+    wrap.innerHTML=`<table class="ad-table">
+      <thead><tr><th>Name</th><th>Position</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${ads.map(a=>`
+        <tr id="ar-${a._id}">
+          <td>${esc(a.name)}</td>
+          <td><span class="ad-pos-badge">${esc(a.position)}</span></td>
+          <td>${a.enabled?'<span class="ad-status-on">● ON</span>':'<span class="ad-status-off">○ OFF</span>'}</td>
+          <td style="display:flex;gap:7px;">
+            <button class="btn-ghost" onclick="openAdModal('${a._id}','${esc(a.name)}','${esc(a.position)}',\`${a.code.replace(/`/g,'\\`')}\`,${a.enabled})">Edit</button>
+            <button class="btn-danger" onclick="delAd('${a._id}')">Del</button>
+          </td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }catch{wrap.innerHTML='<div class="empty-state">Failed to load ads.</div>';}
 }
 
-async function saveEdit() {
-  const id    = document.getElementById('editId').value;
-  const title = document.getElementById('editTitle').value.trim();
-  const tags  = document.getElementById('editTags').value.trim();
-  if (!title) { alert('Title is required'); return; }
-  try {
-    const res = await fetch(`/api/admin/media/${id}`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify({ title, tags })
-    });
-    const data = await res.json();
-    if (data.success) { closeEdit(); loadMedia(); }
-    else alert('Edit failed: ' + data.error);
-  } catch (e) { alert('Edit failed'); }
+function openAdModal(id='',name='',pos='header',code='',enabled=true){
+  editingAdId=id||null;
+  document.getElementById('adModalTitle').textContent=id?'Edit Ad Slot':'Add Ad Slot';
+  document.getElementById('ad-id').value=id;
+  document.getElementById('ad-name').value=name;
+  document.getElementById('ad-position').value=pos;
+  document.getElementById('ad-code').value=code;
+  document.getElementById('ad-enabled').checked=enabled;
+  openModal('adModal');
 }
 
-// close modal on overlay click
-document.getElementById('editModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeEdit();
-});
+async function saveAd(){
+  const id=document.getElementById('ad-id').value;
+  const body={
+    name:document.getElementById('ad-name').value.trim(),
+    position:document.getElementById('ad-position').value,
+    code:document.getElementById('ad-code').value,
+    enabled:document.getElementById('ad-enabled').checked
+  };
+  if(!body.name){alert('Name required');return;}
+  const url=id?`/api/admin/ads/${id}`:'/api/admin/ads';
+  const method=id?'PUT':'POST';
+  const res=await fetch(url,{method,headers:H(),body:JSON.stringify(body)});
+  const d=await res.json();
+  if(d.success){closeModal('adModal');loadAds();}else alert('Failed: '+d.error);
+}
 
+async function delAd(id){
+  if(!confirm('Delete this ad slot?'))return;
+  await fetch(`/api/admin/ads/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token()}`}});
+  loadAds();
+}
+
+/* ═══════════════ CAMS ═══════════════ */
+let editingCamId=null;
+
+async function loadCams(){
+  const wrap=document.getElementById('camsTableWrap');
+  try{
+    const res=await fetch('/api/admin/cams',{headers:{'Authorization':`Bearer ${token()}`}});
+    const data=await res.json();
+    const cams=data.cams||[];
+    if(!cams.length){wrap.innerHTML='<div class="empty-state">No cam sites added yet. Click "+ Add Cam Site" to begin.</div>';return;}
+    wrap.innerHTML=`<table class="cam-table">
+      <thead><tr><th>Preview</th><th>Name</th><th>URL</th><th>Badge</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${cams.map(c=>`
+        <tr id="cr-${c._id}">
+          <td>${c.imageUrl?`<img class="cam-thumb-sm" src="${esc(c.imageUrl)}" alt="">`:'📹'}</td>
+          <td>${esc(c.name)}</td>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${esc(c.affiliateUrl)}" target="_blank" style="color:var(--muted2);font-size:11px">${esc(c.affiliateUrl)}</a></td>
+          <td><span class="ad-pos-badge">${esc(c.badge||'LIVE')}</span></td>
+          <td>${c.enabled?'<span class="ad-status-on">● ON</span>':'<span class="ad-status-off">○ OFF</span>'}</td>
+          <td style="display:flex;gap:7px;">
+            <button class="btn-ghost" onclick="openCamModal('${c._id}','${esc(c.name)}','${esc(c.affiliateUrl)}','${esc(c.imageUrl||'')}','${esc(c.description||'')}','${esc(c.badge||'LIVE')}',${c.enabled},${c.order||0})">Edit</button>
+            <button class="btn-danger" onclick="delCam('${c._id}')">Del</button>
+          </td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }catch{wrap.innerHTML='<div class="empty-state">Failed to load cam sites.</div>';}
+}
+
+function openCamModal(id='',name='',url='',img='',desc='',badge='LIVE',enabled=true,order=0){
+  editingCamId=id||null;
+  document.getElementById('camModalTitle').textContent=id?'Edit Cam Site':'Add Cam Site';
+  document.getElementById('cam-id').value=id;
+  document.getElementById('cam-name').value=name;
+  document.getElementById('cam-url').value=url;
+  document.getElementById('cam-image').value=img;
+  document.getElementById('cam-desc').value=desc;
+  document.getElementById('cam-badge').value=badge;
+  document.getElementById('cam-enabled').checked=enabled;
+  document.getElementById('cam-order').value=order;
+  openModal('camModal');
+}
+
+async function saveCam(){
+  const id=document.getElementById('cam-id').value;
+  const body={
+    name:document.getElementById('cam-name').value.trim(),
+    affiliateUrl:document.getElementById('cam-url').value.trim(),
+    imageUrl:document.getElementById('cam-image').value.trim(),
+    description:document.getElementById('cam-desc').value.trim(),
+    badge:document.getElementById('cam-badge').value.trim()||'LIVE',
+    enabled:document.getElementById('cam-enabled').checked,
+    order:parseInt(document.getElementById('cam-order').value)||0
+  };
+  if(!body.name||!body.affiliateUrl){alert('Name and URL are required');return;}
+  const url=id?`/api/admin/cams/${id}`:'/api/admin/cams';
+  const res=await fetch(url,{method:id?'PUT':'POST',headers:H(),body:JSON.stringify(body)});
+  const d=await res.json();
+  if(d.success){closeModal('camModal');loadCams();}else alert('Failed: '+d.error);
+}
+
+async function delCam(id){
+  if(!confirm('Remove this cam site?'))return;
+  await fetch(`/api/admin/cams/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token()}`}});
+  loadCams();
+}
+
+/* ═══════════════ STATS ═══════════════ */
+async function loadStats(){
+  try{
+    const [mRes,aRes]=await Promise.all([
+      fetch('/api/admin/media',{headers:{'Authorization':`Bearer ${token()}`}}),
+      fetch('/api/admin/ads',{headers:{'Authorization':`Bearer ${token()}`}})
+    ]);
+    const mData=await mRes.json();const aData=await aRes.json();
+    const media=mData.media||[];const ads=aData.ads||[];
+    document.getElementById('stat-media').textContent=media.length;
+    document.getElementById('stat-videos').textContent=media.filter(m=>m.fileType==='video').length;
+    document.getElementById('stat-images').textContent=media.filter(m=>m.fileType==='image').length;
+    document.getElementById('stat-ads').textContent=ads.filter(a=>a.enabled).length;
+
+    const top=[...media].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,10);
+    document.getElementById('topViewed').innerHTML=top.length?`
+      <table class="ad-table">
+        <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Type</th><th>Views</th></tr></thead>
+        <tbody>${top.map((m,i)=>`
+          <tr>
+            <td style="color:var(--muted2)">${i+1}</td>
+            <td>${esc(m.title)}</td>
+            <td style="color:var(--gold)">${cap(m.category||'—')}</td>
+            <td><span class="ad-pos-badge">${m.fileType}</span></td>
+            <td style="font-weight:700">${(m.views||0).toLocaleString()}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`:'<div class="empty-state">No view data yet.</div>';
+  }catch{console.error('Stats load failed');}
+}
+
+/* ── INIT ── */
 loadMedia();
 </script>
 </body>
