@@ -1,35 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>VelvetHub Admin</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>VelvetHub — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css"/>
 </head>
-<body>
+<body class="admin-body">
 
-  <!-- LOGIN BOX -->
-  <div id="loginBox">
-    <form id="loginForm">
-      <input type="text" id="username" name="username">
-      <input type="password" id="password" name="password">
-      <button type="submit">Login</button>
-    </form>
+<div class="admin-container">
+  <div class="admin-box">
+    <div class="admin-logo">Velvet<span>Hub</span></div>
+    <h2>Admin Login</h2>
+
+    <input type="text"     id="username" placeholder="Username" autocomplete="username"/>
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password"/>
+    <button class="login-btn" id="loginBtn">Sign In</button>
+
+    <p class="admin-error hidden" id="loginError">Invalid username or password.</p>
   </div>
+</div>
 
-  <!-- UPLOAD BOX -->
-  <div id="uploadBox" style="display:none;">
-    <h2>Upload Media</h2>
-
-    <form id="uploadForm" enctype="multipart/form-data">
-      <input id="title" type="text" placeholder="Title" required />
-      <input id="tags" type="text" placeholder="Tags (comma separated)" />
-      <input id="file" type="file" accept="image/*,video/*" required />
-      <button type="submit">Upload</button>
-    </form>
-
-    <button id="logoutBtn">Logout</button>
-  </div>
-
-  <script src="/js/admin.js"></script>
+<script src="/js/admin.js"></script>
 </body>
 </html>
